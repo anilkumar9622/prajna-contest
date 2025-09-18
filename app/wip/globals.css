@@ -1,0 +1,70 @@
+@import url("https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@400;500;600;700&display=swap");
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+:root {
+  --background: #efe1f4;
+  --foreground: #13012d;
+  --body-font: "Bai Jamjuree", sans-serif;
+}
+
+.prevent-select {
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+html{
+  scroll-behavior: smooth;
+}
+
+.noselect {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.noselect:focus {
+  outline: none !important;
+}
+
+/*=============== SCROLL BAR ===============*/
+::-webkit-scrollbar{
+  width: 0;
+  visibility: hidden;
+}
+
+::-webkit-scrollbar-track{
+  background: #00000000;
+}
+
+::-webkit-scrollbar-thumb{
+  background: #00000000;
+  border-radius: 100px;
+}
+
+::-webkit-scrollbar-thumb:hover{
+  background: #00000000;
+  border-radius: 100px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #13012d;
+    --foreground: #efe1f4;
+  }
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: var(--body-font);
+  transition: all ease-in-out 0.3s;
+}
+

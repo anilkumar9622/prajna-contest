@@ -1,19 +1,3 @@
-// // app/api/auth/register/route.ts
-// import { NextResponse } from "next/server";
-// import { db } from "@/utils/firebaseAdmin"; // ✅ only used here, never in client
-
-// export async function POST(req: Request) {
-//   try {
-//     const body = await req.json();
-//     const docRef = await db.collection("user").add(body);
-
-//     return NextResponse.json({ message: "Registered successfully", id: docRef.id }, { status: 201 });
-//   } catch (err: any) {
-//     return NextResponse.json({ error: err.message }, { status: 500 });
-//   }
-// }
-
-
 import { NextResponse } from "next/server";
 import { db } from "@/utils/firebaseAdmin";
 import { formSchema } from "@/utils/schemaValidation";

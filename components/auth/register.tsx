@@ -16,30 +16,7 @@ import { useForm, SubmitHandler } from 'react-hook-form';
 import Captcha from './captcha';
 import IconCalendar from '../icon/icon-calendar';
 import { formSchema } from '@/utils/schemaValidation';
-// import handler from '@/app/api/auth/register/route';
-type FormValues = {
-    name: string;
-    gender: string;
-    dob: string;                // changed from Date to string
-    email: string;
-    phone: string;
-    instituteType: string;
-    institute: string;
-    regBace: string;
-    registrationType: string;
-    collectorName: string;      // ensure string, not string | undefined
-    collectorContact: string;   // ensure string, not string | undefined
-    courierHouseNo: string;
-    courierLine1: string;
-    courierLine2: string;
-    courierCity: string;
-    courierDistrict: string;
-    courierState: string;
-    courierPincode: string;
-    courierContact: string;
-    remarks: string;
-    agree: boolean;               // 👈 schema enforces only true
-};
+import Swal from 'sweetalert2';
 
 const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", className = "", }: any) => {
     const {
@@ -55,27 +32,37 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
         defaultValues: {
             name: "",
             gender: "",
-            dob: "", // 👈 changed from new Date() to empty string
+            dob: "", // string
             email: "",
             phone: "",
             instituteType: "",
             institute: "",
             regBace: "",
             registrationType: "",
-            collectorName: "",
-            collectorContact: "",
-            courierHouseNo: "",
-            courierLine1: "",
-            courierLine2: "",
-            courierCity: "",
-            courierDistrict: "",
-            courierState: "",
-            courierPincode: "",
-            courierContact: "",
+
+            // representative object
+            representative: {
+                name: "",
+                contact: "",
+            },
+
+            isCourier: false, // controls courier fields
+            courier: {
+                houseNo: "",
+                line1: "",
+                line2: "",
+                city: "",
+                district: "",
+                state: "",
+                pincode: "",
+                contact: "",
+            },
+
             remarks: "",
             agree: false,
-            captcha: "",  // 👈 added to match schema
-        },
+            captcha: "",
+        }
+
     });
     const [checked, setChecked] = useState(false);
 
@@ -130,7 +117,14 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
     const handleServiceChange = (key: any) => {
         setServices({ ...services, [key]: !services[key] });
     };
-    const registrationCharge = 300; // example base fee
+ 
+    const [registrationCharge, setRegistrationCharge] = useState<number>(0);
+    const instituteTypeHandler = (value: string | number) => {
+  if (value === "school") setRegistrationCharge(200);
+  else if (value === "college") setRegistrationCharge(300);
+  else setRegistrationCharge(0); // default if needed
+};
+
     const languageCharge = services.language ? 100 : 0;
 
 
@@ -147,39 +141,49 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
 
 
     //   const registrationType = watch("registrationType");
-
-    const onSubmit: any = async (data: any) => {
-        // await handler(
-        //     {
-        //         body: { name: "anil", gender: "male", dob: "2000-01-01" },
-        //         method: "POST",
-        //     } as any,
-        //     {
-        //         status: (code: number) => ({
-        //             json: (obj: any) => {
-        //                 console.log("Response:", code, obj);
-        //                 return obj;
-        //             },
-        //         }),
-        //     } as any
-        // );
-
-        console.log("Form Data:", data);
+    const showMessage = (msg = '', type = 'success') => {
+        const toast: any = Swal.mixin({
+            toast: true,
+            position: 'top',
+            showConfirmButton: false,
+            timer: 3000,
+            customClass: { container: 'toast' },
+        });
+        toast.fire({
+            icon: type,
+            title: msg,
+            padding: '10px 20px',
+        });
     };
-  const handleRegister = async (formData: any) => {
-  const res = await fetch("/api/auth/register", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(formData),
-  });
+    const onSubmit = async (formData: any) => {
+        // const {captcha, ...val} = formData
+        console.log
+        const res = await fetch("/api/auth/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(formData),
+        });
 
-  const data = await res.json();
-  console.log(data);
-};
+        const data = await res.json();
+        if (res.status === 201) {
+            showMessage("Registered successfully!", "success");
+            // router.push("/dashboard");
+        } else if (res.status === 400) {
+            showMessage(data.errors.join(", "), "error");
+        } else {
+            showMessage(data.error || "Something went wrong!", "error");
+        }
+        console.log(data);
+    };
+    const error = (errors: any) => {
+        console.log("errors", errors);
+    }
+
+
 
     return (
         <>
-            <form className="space-y-5 dark:text-white" onSubmit={handleSubmit(onSubmit)}>
+            <form className="space-y-5 dark:text-white" onSubmit={handleSubmit(onSubmit, error)}>
                 <div className="relative text-white-dark">
                     <HookFormInputField
                         name="name"
@@ -245,6 +249,7 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
                         name="instituteType"
                         control={control}
                         label="Institute Type"
+                        callback={instituteTypeHandler}
                         placeholder="Select Institute Type"
                         options={[
                             { value: "school", label: "School (Class 9 and above only)" },
@@ -254,6 +259,16 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
                         error={errors.instituteType?.message}
                     />
                 </div>
+                {/* <div className="flex items-center p-3.5 rounded text-secondary bg-secondary-light dark:bg-secondary-dark-light">
+                    <span className="ltr:pr-2 rtl:pl-2">
+                        <strong className="ltr:mr-1 rtl:ml-1">Alert!</strong> Make sure the student is in class 9 or higher.
+
+                    </span>
+                    <button type="button" className="ltr:ml-auto rtl:mr-auto hover:opacity-80">
+                    </button>
+                </div> */}
+
+
                 <div className="flex flex-col ">
                     {!isOther ? (
                         <HookFormSelectField
@@ -314,20 +329,20 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
                 {registrationType === "offline" && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 border p-4 rounded-lg bg-blue-50 border-blue-600">
                         <HookFormInputField
-                            name="collectorName"
+                            name="representative.name"
                             control={control}
-                            label="Name"
+                            label="Representative Name"
                             placeholder="Enter Name"
                             required
-                            error={errors.collectorName?.message}
+                            error={errors.representative?.name?.message}
                         />
                         <HookFormInputField
-                            name="collectorContact"
+                            name="representative.contact"
                             control={control}
-                            label="Contact"
+                            label="Representative Contact"
                             placeholder="Enter Contact"
                             required
-                            error={errors.collectorContact?.message}
+                            error={errors.representative?.contact?.message}
 
                         />
                     </div>
@@ -366,62 +381,62 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
                         </div>
 
                         <HookFormInputField
-                            name="courierHouseNo"
+                            name="courier.houseNo"
                             control={control}
                             placeholder="House No., Building Name *"
                             required
-                            error={errors.courierHouseNo?.message}
+                            error={errors.courier?.houseNo?.message}
 
                         />
                         <HookFormInputField
-                            name="courierLine1"
+                            name="courier.line1"
                             control={control}
                             placeholder="Address Line 1"
                         />
                         <HookFormInputField
-                            name="courierLine2"
+                            name="courier.line2"
                             control={control}
                             placeholder="Address Line 2"
                         />
                         <div className="grid grid-cols-2 gap-4">
                             <HookFormInputField
-                                name="courierCity"
+                                name="courier.city"
                                 control={control}
                                 placeholder="City*"
                                 required
-                                error={errors.courierCity?.message}
+                                error={errors.courier?.city?.message}
 
                             />
                             <HookFormInputField
-                                name="courierDistrict"
+                                name="courier.district"
                                 control={control}
                                 placeholder="District"
                             />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <HookFormInputField
-                                name="courierState"
+                                name="courier.state"
                                 control={control}
                                 placeholder="State*"
                                 required
-                                error={errors.courierState?.message}
+                                error={errors.courier?.state?.message}
 
                             />
                             <HookFormInputField
-                                name="courierPincode"
+                                name="courier.pincode"
                                 control={control}
                                 placeholder="Pincode*"
                                 required
-                                error={errors.courierPincode?.message}
+                                error={errors.courier?.pincode?.message}
 
                             />
                         </div>
                         <HookFormInputField
-                            name="courierContact"
+                            name="courier.contact"
                             control={control}
                             placeholder="Contact Number*"
                             required
-                            error={errors.courierContact?.message}
+                            error={errors.courier?.contact?.message}
 
                         />
                     </div>
@@ -549,7 +564,7 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
                     Next
                 </button>
             </form>
-            <button onClick={()=>handleRegister({name:"anil", email:"kk", dob:""})}>submit</button>
+
 
 
         </>

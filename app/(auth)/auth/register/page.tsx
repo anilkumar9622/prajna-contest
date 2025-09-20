@@ -63,7 +63,7 @@ const BoxedSignUp = () => {
                     >
                         <div className="mx-auto w-full max-w-[640px] ">
                             <div className="py-10">
-                                <h1 className="text-xl font-extrabold uppercase !leading-snug text-primary md:text-xl lg:text-xl" style={{ color: "#493f8f" }}>Registration - PRAJÑĀ 2025</h1>
+                                <h1 className="text-xl font-extrabold uppercase !leading-snug text-primary md:text-xl lg:text-xl" style={{ color: "#493f8f" }}>Registration - PRAJÑĀ CONTEST 2025</h1>
                                 <p className="text-base font-bold leading-normal text-white-dark text-sm md:text-md lg:text-md">A Value Education Contest for Students</p>
                             </div>
 

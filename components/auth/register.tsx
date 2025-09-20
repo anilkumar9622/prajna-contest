@@ -17,6 +17,7 @@ import Captcha from './captcha';
 import IconCalendar from '../icon/icon-calendar';
 import { formSchema } from '@/utils/schemaValidation';
 import Swal from 'sweetalert2';
+import SendEmailPage from './EmailSend';
 
 const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", className = "", }: any) => {
     const {
@@ -563,6 +564,7 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
                 <button type="submit" className="btn btn-gradient p-3 !mt-6 w-full border-0 uppercase shadow-[0_10px_20px_-10px_rgba(67,97,238,0.44)]">
                     Next
                 </button>
+                <SendEmailPage/>
             </form>
 
 

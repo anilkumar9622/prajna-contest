@@ -120,7 +120,7 @@ export type Courier = {
 export type FormValues = {
   name: string;
   gender: string;
-  dob: string; // string for simplicity
+  dob: string;
   email: string;
   phone: string;
   instituteType: string;
@@ -135,10 +135,8 @@ export type FormValues = {
   captcha: string;
 };
 
-// ----------------------
-// Yup Validation Schema
-// ----------------------
-export const formSchema = yup.object({
+// Base schema with common fields
+const baseFields = {
   name: yup.string().required("Full name is required"),
   gender: yup.string().required("Gender is required"),
   dob: yup
@@ -158,58 +156,109 @@ export const formSchema = yup.object({
   institute: yup.string().required("Institute Name is required"),
   regBace: yup.string().required("Registration BACE is required"),
   registrationType: yup.string().required("Registration type is required"),
+  remarks: yup.string().max(500).optional(),
+  agree: yup
+    .boolean()
+    .oneOf([true], "You must agree to the terms")
+    .required("Agreement is required"),
+  captcha: yup.string().required("Captcha verification is required"),
+};
 
-representative: yup
-  .object({
+// Online registration schema
+export const onlineSchema = yup.object({
+  ...baseFields,
+  
+  // Representative not required for online
+  representative: yup.object({
+    name: yup.string().notRequired(),
+    contact: yup.string().notRequired(),
+  }),
+  
+  isCourier: yup.boolean().optional(),
+  
+  // Courier fields only required when isCourier is true
+  courier: yup.object({
+    houseNo: yup.string().when('$isCourier', {
+      is: true,
+      then: (schema) => schema.required("House No is required"),
+      otherwise: (schema) => schema.notRequired()
+    }),
+    line1: yup.string().when('$isCourier', {
+      is: true,
+      then: (schema) => schema.required("Address Line 1 is required"),
+      otherwise: (schema) => schema.notRequired()
+    }),
+    line2: yup.string().optional(),
+    city: yup.string().when('$isCourier', {
+      is: true,
+      then: (schema) => schema.required("City is required"),
+      otherwise: (schema) => schema.notRequired()
+    }),
+    district: yup.string().when('$isCourier', {
+      is: true,
+      then: (schema) => schema.required("District is required"),
+      otherwise: (schema) => schema.notRequired()
+    }),
+    state: yup.string().when('$isCourier', {
+      is: true,
+      then: (schema) => schema.required("State is required"),
+      otherwise: (schema) => schema.notRequired()
+    }),
+    pincode: yup.string().when('$isCourier', {
+      is: true,
+      then: (schema) => schema.matches(/^[0-9]{6}$/, "Pincode must be 6 digits").required("Pincode is required"),
+      otherwise: (schema) => schema.notRequired()
+    }),
+    contact: yup.string().when('$isCourier', {
+      is: true,
+      then: (schema) => schema.matches(/^[0-9]{10}$/, "Courier contact must be 10 digits").required("Courier contact is required"),
+      otherwise: (schema) => schema.notRequired()
+    })
+  })
+});
+
+// Offline registration schema
+export const offlineSchema = yup.object({
+  ...baseFields,
+  
+  // Representative required for offline
+  representative: yup.object({
     name: yup.string().required("Representative name is required"),
     contact: yup
       .string()
       .matches(/^[0-9]{10}$/, "Contact must be 10 digits")
       .required("Representative contact is required"),
-  })
-  .when("registrationType", {
-    is: "offline",
-    then: (schema) => schema.required(),
-    otherwise: (schema) => schema.optional(),
   }),
-
-
+  
   isCourier: yup.boolean().optional(),
-
- courier: yup
-  .object({
-    houseNo: yup.string().required("House No is required"),
-    line1: yup.string().required("Address Line 1 is required"),
+  
+  // Courier fields not required for offline
+  courier: yup.object({
+    houseNo: yup.string().notRequired(),
+    line1: yup.string().notRequired(),
     line2: yup.string().optional(),
-    city: yup.string().required("City is required"),
-    district: yup.string().required("District is required"),
-    state: yup.string().required("State is required"),
-    pincode: yup
-      .string()
-      .matches(/^[0-9]{6}$/, "Pincode must be 6 digits")
-      .required("Pincode is required"),
-    contact: yup
-      .string()
-      .matches(/^[0-9]{10}$/, "Courier contact must be 10 digits")
-      .required("Courier contact is required"),
+    city: yup.string().notRequired(),
+    district: yup.string().notRequired(),
+    state: yup.string().notRequired(),
+    pincode: yup.string().notRequired(),
+    contact: yup.string().notRequired()
   })
-  .when("isCourier", {
-    is: true,
-    then: (schema) => schema.required(), // make entire object required if isCourier is true
-    otherwise: (schema) => schema.optional(), // otherwise optional
-  }),
-
-
-  remarks: yup.string().max(500).optional(),
-
-  agree: yup
-    .boolean()
-    .oneOf([true], "You must agree to the terms")
-    .required("Agreement is required"),
-
-  captcha: yup.string().required("Captcha verification is required"),
 });
 
+// Function to get appropriate schema based on registration type
+export const getValidationSchema = (registrationType: string) => {
+  if (registrationType === 'online') {
+    return onlineSchema;
+  } else if (registrationType === 'offline') {
+    return offlineSchema;
+  } else {
+    throw new Error('Invalid registration type');
+  }
+};
 
-export type FormValuess = yup.InferType<typeof formSchema>;// 👈 single source of truth
+// Keep the original formSchema for backward compatibility (basic validation)
+export const formSchema = yup.object(baseFields);
+
+export type FormValuess = yup.InferType<typeof onlineSchema>;
+
 

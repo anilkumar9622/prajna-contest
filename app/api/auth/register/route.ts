@@ -1,15 +1,25 @@
 import { NextResponse } from "next/server";
 import { db } from "@/utils/firebaseAdmin";
-import { formSchema } from "@/utils/schemaValidation";
+import { getValidationSchema } from "@/utils/schemaValidation";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    // 1️⃣ Validate request body
-    const validatedData = await formSchema.validate(body, { abortEarly: false });
+    if (!body.registrationType) {
+      return NextResponse.json(
+        { errors: ["Registration type is required"] },
+        { status: 400 }
+      );
+    }
 
-    // 2️⃣ Check for duplicate email
+    const schema = getValidationSchema(body.registrationType);
+
+    const validatedData = await schema.validate(body, { 
+      abortEarly: false,
+      context: { isCourier: body.isCourier }
+    });
+
     const emailQuery = await db
       .collection("user")
       .where("email", "==", validatedData.email)
@@ -22,14 +32,13 @@ export async function POST(req: Request) {
       );
     }
 
-    // 3️⃣ Save user
     const docRef = await db.collection("user").add({
       ...validatedData,
       createdAt: new Date(),
     });
 
     return NextResponse.json(
-      { message: "Registered successfully", id: docRef.id },
+      { message: "Hare Krishna, Registered successfully", id: docRef.id },
       { status: 201 }
     );
   } catch (err: any) {

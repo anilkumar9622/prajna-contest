@@ -15,25 +15,113 @@ import HookFormSelectField from '../hooks/hookFormSelect';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import Captcha from './captcha';
 import IconCalendar from '../icon/icon-calendar';
-import { formSchema } from '@/utils/schemaValidation';
+import * as yup from 'yup';
 import Swal from 'sweetalert2';
 import SendEmailPage from './EmailSend';
 
+// Base schema with common fields
+const baseSchema = {
+    name: yup.string().required("Name is required"),
+    gender: yup.string().required("Gender is required"),
+    dob: yup.string().required("Date of birth is required"),
+    email: yup.string().email("Invalid email").required("Email is required"),
+    phone: yup.string().required("Phone is required"),
+    instituteType: yup.string().required("Institute type is required"),
+    institute: yup.string().required("Institute is required"),
+    regBace: yup.string().required("Registration BACE is required"),
+    registrationType: yup.string().required("Registration type is required"),
+    remarks: yup.string().notRequired(),
+    agree: yup.boolean().oneOf([true], "You must agree to the terms"),
+    captcha: yup.string().required("Captcha is required")
+};
+
+// Online registration schema
+const onlineSchema = yup.object({
+    ...baseSchema,
+    representative: yup.object().shape({
+        name: yup.string().notRequired(),
+        contact: yup.string().notRequired()
+    }),
+    isCourier: yup.boolean(),
+    courier: yup.object().shape({
+        houseNo: yup.string().when('$isCourier', {
+            is: true,
+            then: (schema) => schema.required("House No is required"),
+            otherwise: (schema) => schema.notRequired()
+        }),
+        line1: yup.string().when('$isCourier', {
+            is: true,
+            then: (schema) => schema.required("Address Line 1 is required"),
+            otherwise: (schema) => schema.notRequired()
+        }),
+        line2: yup.string().notRequired(),
+        city: yup.string().when('$isCourier', {
+            is: true,
+            then: (schema) => schema.required("City is required"),
+            otherwise: (schema) => schema.notRequired()
+        }),
+        district: yup.string().when('$isCourier', {
+            is: true,
+            then: (schema) => schema.required("District is required"),
+            otherwise: (schema) => schema.notRequired()
+        }),
+        state: yup.string().when('$isCourier', {
+            is: true,
+            then: (schema) => schema.required("State is required"),
+            otherwise: (schema) => schema.notRequired()
+        }),
+        pincode: yup.string().when('$isCourier', {
+            is: true,
+            then: (schema) => schema.matches(/^\d{6}$/, "Pincode must be 6 digits").required("Pincode is required"),
+            otherwise: (schema) => schema.notRequired()
+        }),
+        contact: yup.string().when('$isCourier', {
+            is: true,
+            then: (schema) => schema.matches(/^\d{10}$/, "Courier contact must be 10 digits").required("Courier contact is required"),
+            otherwise: (schema) => schema.notRequired()
+        })
+    })
+});
+
+// Offline registration schema
+const offlineSchema = yup.object({
+    ...baseSchema,
+    representative: yup.object().shape({
+        name: yup.string().required("Representative name is required"),
+        contact: yup.string().required("Representative contact is required")
+    }),
+    isCourier: yup.boolean().notRequired(),
+    courier: yup.object().shape({
+        houseNo: yup.string().notRequired(),
+        line1: yup.string().notRequired(),
+        line2: yup.string().notRequired(),
+        city: yup.string().notRequired(),
+        district: yup.string().notRequired(),
+        state: yup.string().notRequired(),
+        pincode: yup.string().notRequired(),
+        contact: yup.string().notRequired()
+    })
+});
+
 const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", className = "", }: any) => {
+    const [registrationType, setRegistrationType] = useState("");
+    const [isCourier, setIsCourier] = useState(false);
+    
     const {
         control,
         handleSubmit,
         watch,
         setValue,
         reset,
-        // formState: { isSubmitting, isValid },   
+        trigger,
         formState: { errors },
     } = useForm({
-        resolver: yupResolver(formSchema),
+        // Use a default schema initially
+        resolver: yupResolver(yup.object(baseSchema)),
         defaultValues: {
             name: "",
             gender: "",
-            dob: "", // string
+            dob: "",
             email: "",
             phone: "",
             instituteType: "",
@@ -41,13 +129,12 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
             regBace: "",
             registrationType: "",
 
-            // representative object
             representative: {
                 name: "",
                 contact: "",
             },
 
-            isCourier: false, // controls courier fields
+            isCourier: false,
             courier: {
                 houseNo: "",
                 line1: "",
@@ -63,8 +150,8 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
             agree: false,
             captcha: "",
         }
-
     });
+
     const [checked, setChecked] = useState(false);
 
     const toggle = () => {
@@ -86,18 +173,17 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
     const handleChange = (value: any) => {
         if (value === "Other") {
             setIsOther(true);
-            setInstitute(""); // reset input
-            reset({ ...watch(), institute: "" }); // reset form value
+            setInstitute("");
+            reset({ ...watch(), institute: "" });
         } else {
             setIsOther(false);
             setInstitute(value);
         }
     };
-    const [isCourier, setIsCourier] = useState(false);
+
     console.log("isCourier", isCourier);
     const [courierCharge, setCourierCharge] = useState(0);
 
-    const [registrationType, setRegistrationType] = useState("");
     const [offlineCollector, setOfflineCollector] = useState({ name: "", contact: "" });
     const [courier, setCourier] = useState({
         houseNo: "",
@@ -121,13 +207,12 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
  
     const [registrationCharge, setRegistrationCharge] = useState<number>(0);
     const instituteTypeHandler = (value: string | number) => {
-  if (value === "school") setRegistrationCharge(200);
-  else if (value === "college") setRegistrationCharge(300);
-  else setRegistrationCharge(0); // default if needed
-};
+        if (value === "school") setRegistrationCharge(200);
+        else if (value === "college") setRegistrationCharge(300);
+        else setRegistrationCharge(0);
+    };
 
     const languageCharge = services.language ? 100 : 0;
-
 
     useEffect(() => {
         setCourierCharge(registrationType === "online" ? 100 : 0);
@@ -140,8 +225,6 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
 
     const [regBace, setRegBace] = useState("");
 
-
-    //   const registrationType = watch("registrationType");
     const showMessage = (msg = '', type = 'success') => {
         const toast: any = Swal.mixin({
             toast: true,
@@ -156,9 +239,56 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
             padding: '10px 20px',
         });
     };
+
+    // Separate validation functions for online and offline
+    const validateOnlineForm = async (formData: any) => {
+        try {
+            await onlineSchema.validate(formData, { 
+                abortEarly: false,
+                context: { isCourier: formData.isCourier }
+            });
+            return { isValid: true, errors: {} };
+        } catch (error: any) {
+            const validationErrors: any = {};
+            error.inner.forEach((err: any) => {
+                validationErrors[err.path] = err.message;
+            });
+            return { isValid: false, errors: validationErrors };
+        }
+    };
+
+    const validateOfflineForm = async (formData: any) => {
+        try {
+            await offlineSchema.validate(formData, { abortEarly: false });
+            return { isValid: true, errors: {} };
+        } catch (error: any) {
+            const validationErrors: any = {};
+            error.inner.forEach((err: any) => {
+                validationErrors[err.path] = err.message;
+            });
+            return { isValid: false, errors: validationErrors };
+        }
+    };
+
     const onSubmit = async (formData: any) => {
-        // const {captcha, ...val} = formData
-        console.log
+        // Choose validation function based on registration type
+        let validation;
+        if (formData.registrationType === 'online') {
+            validation = await validateOnlineForm(formData);
+        } else if (formData.registrationType === 'offline') {
+            validation = await validateOfflineForm(formData);
+        } else {
+            showMessage("Please select registration type", "error");
+            return;
+        }
+
+        if (!validation.isValid) {
+            showMessage("Please fix the validation errors", "error");
+            console.log("Validation errors:", validation.errors);
+            return;
+        }
+
+        console.log("Form data:", formData);
         const res = await fetch("/api/auth/register", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -167,8 +297,24 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
 
         const data = await res.json();
         if (res.status === 201) {
-            showMessage("Registered successfully!", "success");
-            // router.push("/dashboard");
+            showMessage("Hare Krishna, Registered successfully!", "success");
+            
+            reset();
+           
+            setRegistrationType("");
+            setIsCourier(false);
+            setInstitute("");
+            setIsOther(false);
+            setServices({
+                language: false,
+                courier: false,
+            });
+            setRegistrationCharge(0);
+            setCourierCharge(0);
+            setGender("");
+            setInstituteType("");
+            setRegBace("");
+            
         } else if (res.status === 400) {
             showMessage(data.errors.join(", "), "error");
         } else {
@@ -176,11 +322,10 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
         }
         console.log(data);
     };
+
     const error = (errors: any) => {
         console.log("errors", errors);
     }
-
-
 
     return (
         <>
@@ -193,7 +338,7 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
                         label="Full Name"
                         required
                         error={errors.name?.message}
-                        icon={<IconUser fill={true} />} // 👈 Pass icon
+                        icon={<IconUser fill={true} />}
                     />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -232,7 +377,7 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
                         required
                         type="email"
                         error={errors.email?.message}
-                        icon={<IconMail fill={true} />} // 👈 Pass icon
+                        icon={<IconMail fill={true} />}
                     />
                     <HookFormInputField
                         name="phone"
@@ -260,15 +405,6 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
                         error={errors.instituteType?.message}
                     />
                 </div>
-                {/* <div className="flex items-center p-3.5 rounded text-secondary bg-secondary-light dark:bg-secondary-dark-light">
-                    <span className="ltr:pr-2 rtl:pl-2">
-                        <strong className="ltr:mr-1 rtl:ml-1">Alert!</strong> Make sure the student is in class 9 or higher.
-
-                    </span>
-                    <button type="button" className="ltr:ml-auto rtl:mr-auto hover:opacity-80">
-                    </button>
-                </div> */}
-
 
                 <div className="flex flex-col ">
                     {!isOther ? (
@@ -323,7 +459,19 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
                         ]}
                         required
                         error={errors.registrationType?.message}
-                        callback={(e: any) => setRegistrationType(e)}
+                        callback={(e: any) => {
+                            setRegistrationType(e);
+                            if (e === 'offline') {
+                                setValue('isCourier', false);
+                                setValue('courier.houseNo', '');
+                                setValue('courier.line1', '');
+                                setValue('courier.city', '');
+                                setValue('courier.district', '');
+                                setValue('courier.state', '');
+                                setValue('courier.pincode', '');
+                                setValue('courier.contact', '');
+                            }
+                        }}
                     />
                 </div>
 
@@ -344,7 +492,6 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
                             placeholder="Enter Contact"
                             required
                             error={errors.representative?.contact?.message}
-
                         />
                     </div>
                 )}
@@ -354,21 +501,26 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
                             <span className="text-sm text-gray-700 dark:text-gray-200">
                                 Send Prajna Kit Via Courier
                             </span>
-                            {/* <input
-                                type="checkbox"
-                                className="form-checkbox border-gray-400 bg-white h-5 w-5 text-blue-600"
-                                checked={isCourier}
-                                onChange={() => setIsCourier(!isCourier)}
-                            /> */}
                             <HookFormInputField
                                 name="isCourier"
                                 control={control}
                                 required
                                 type="checkbox"
-                                callback={(val: any) => setIsCourier(val)}
+                                callback={(val: any) => {
+                                    setIsCourier(val);
+                                    // Clear courier fields when unchecking
+                                    if (!val) {
+                                        setValue('courier.houseNo', '');
+                                        setValue('courier.line1', '');
+                                        setValue('courier.city', '');
+                                        setValue('courier.district', '');
+                                        setValue('courier.state', '');
+                                        setValue('courier.pincode', '');
+                                        setValue('courier.contact', '');
+                                    }
+                                }}
                                 className="form-checkbox h-5 w-5 text-blue-600 border-gray-400 bg-whit"
                             />
-
                         </label>
                     </div>)}
 
@@ -387,7 +539,6 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
                             placeholder="House No., Building Name *"
                             required
                             error={errors.courier?.houseNo?.message}
-
                         />
                         <HookFormInputField
                             name="courier.line1"
@@ -406,7 +557,6 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
                                 placeholder="City*"
                                 required
                                 error={errors.courier?.city?.message}
-
                             />
                             <HookFormInputField
                                 name="courier.district"
@@ -421,7 +571,6 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
                                 placeholder="State*"
                                 required
                                 error={errors.courier?.state?.message}
-
                             />
                             <HookFormInputField
                                 name="courier.pincode"
@@ -429,7 +578,6 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
                                 placeholder="Pincode*"
                                 required
                                 error={errors.courier?.pincode?.message}
-
                             />
                         </div>
                         <HookFormInputField
@@ -438,7 +586,6 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
                             placeholder="Contact Number*"
                             required
                             error={errors.courier?.contact?.message}
-
                         />
                     </div>
                 )}
@@ -463,7 +610,6 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
                     <div className="mt-1 mb-5 space-y-3 border rounded-lg p-2 bg-[#fff9ed] border-red-900">
 
                         <label className="flex items-center justify-between gap-2 cursor-pointer mb-0 p-1">
-
                             <span className="text-sm text-gray-700 dark:text-gray-200">
                                 English Bhagavad Gita (+ ₹100)
                             </span>
@@ -479,7 +625,6 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
                     <div className='border-b border-l-2 mb-2'></div>
 
                     <div className="space-y-3 text-sm">
-                        {/* Registration */}
                         <div className="flex justify-between">
                             <span className="text-gray-600 dark:text-gray-300">Registration Charge</span>
                             <span className="font-medium text-gray-800 dark:text-gray-100">
@@ -487,7 +632,6 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
                             </span>
                         </div>
 
-                        {/* Language */}
                         {services.language && (
                             <div className="flex justify-between">
                                 <span className="text-gray-600 dark:text-gray-300">
@@ -497,7 +641,6 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
                             </div>
                         )}
 
-                        {/* Courier */}
                         {courierCharge > 0 && (
                             <div className="flex justify-between">
                                 <span className="text-gray-600 dark:text-gray-300">
@@ -512,7 +655,6 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
 
                         <div className="border-t border-gray-300 dark:border-gray-600 my-3"></div>
 
-                        {/* Total */}
                         <div className="flex justify-between text-base font-bold">
                             <span className="text-gray-900 dark:text-white">Total Amount</span>
                             <span className="text-blue-600 dark:text-blue-400">₹{total}</span>
@@ -520,17 +662,11 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
                     </div>
                 </div>
 
-
                 <div className="mt-4 space-y-3">
                     <label className="flex items-center gap-2 cursor-pointer">
-                        {/* <input
-                            type="checkbox"
-                            className="form-checkbox h-4 w-4 text-blue-600"
-                        /> */}
                         <HookFormInputField
                             name="agree"
                             control={control}
-
                             required
                             type="checkbox"
                             className="form-checkbox h-5 w-5 text-blue-600 border-gray-400 bg-whit"
@@ -559,16 +695,11 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
                     <span className="text-red-500 text-sm inline lg:block md:block  text-center leading-none">{errors.captcha?.message}</span>
                 }
 
-
-
                 <button type="submit" className="btn btn-gradient p-3 !mt-6 w-full border-0 uppercase shadow-[0_10px_20px_-10px_rgba(67,97,238,0.44)]">
                     Next
                 </button>
                 <SendEmailPage/>
             </form>
-
-
-
         </>
     );
 };

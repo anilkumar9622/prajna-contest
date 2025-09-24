@@ -1,4 +1,3 @@
-
 import ComponentsAuthRegisterForm from '@/components/auth/register';
 import IconFacebookCircle from '@/components/icon/icon-facebook-circle';
 import IconGoogle from '@/components/icon/icon-google';
@@ -8,7 +7,6 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import React from 'react';
 
-
 export const metadata: Metadata = {
     title: 'Register - PRAJÑĀ Contest - 2025',
 };
@@ -17,17 +15,15 @@ const BoxedSignUp = () => {
     return (
         <div>
             <header className="z-40 fixed top-0 left-0 w-full">
-                <div className="relative flex w-full items-center justify-between px-5 py-2 
+                <div
+                    className="relative flex w-full items-center justify-between px-5 py-2 
                   bg-white/60 dark:bg-black/30 
                   backdrop-blur-md shadow-sm
-                   border-b md:border-0">
+                   border-b md:border-0"
+                >
                     <div className="horizontal-logo flex items-center">
                         <Link href="/" className="flex items-center">
-                            <img
-                                src="/assets/images/auth/logo-mob.png"
-                                alt="logo"
-                                className="w-8"
-                            />
+                            <img src="/assets/images/auth/logo-mob.png" alt="logo" className="w-8" />
                         </Link>
                     </div>
 
@@ -37,13 +33,10 @@ const BoxedSignUp = () => {
                         <span className="block md:hidden">BACE</span>
 
                         {/* Show on md+ (tablet/desktop) */}
-                        <span className="hidden md:block">
-                            Bhaktivedanta Academy for Culture and Education
-                        </span>
+                        <span className="hidden md:block">Bhaktivedanta Academy for Culture and Education</span>
                     </div>
                     <div className="ml-auto text-sm">
-                        Already a member?{" "}
-                        Login
+                        Already a member? Login
                         {/* <Login /> */}
                     </div>
                 </div>
@@ -57,13 +50,12 @@ const BoxedSignUp = () => {
                 <img src="/assets/images/auth/coming-soon-object3.png" alt="image" className="absolute right-0 top-0 h-[300px]" />
                 <img src="/assets/images/auth/polygon-object.svg" alt="image" className="absolute bottom-0 end-[28%]" />
                 <div className="relative w-full max-w-[870px] rounded-md bg-[linear-gradient(45deg,#fff9f9_0%,rgba(255,255,255,0)_25%,rgba(255,255,255,0)_75%,_#fff9f9_100%)] p-2 dark:bg-[linear-gradient(52.22deg,#0E1726_0%,rgba(14,23,38,0)_18.66%,rgba(14,23,38,0)_51.04%,rgba(14,23,38,0)_80.07%,#0E1726_100%)] lg:mt-10 md:mt-8">
-
-                    <div
-                        className="relative flex flex-col justify-center rounded-md bg-white px-6  backdrop-blur-lg dark:bg-black/50 lg:min-h-[658px]"
-                    >
+                    <div className="relative flex flex-col justify-center rounded-md bg-white px-6  backdrop-blur-lg dark:bg-black/50 lg:min-h-[658px]">
                         <div className="mx-auto w-full max-w-[640px] ">
                             <div className="py-10">
-                                <h1 className="text-xl font-extrabold uppercase !leading-snug text-primary md:text-xl lg:text-xl" style={{ color: "#493f8f" }}>Registration - PRAJÑĀ CONTEST 2025</h1>
+                                <h1 className="text-xl font-extrabold uppercase !leading-snug text-primary md:text-xl lg:text-xl" style={{ color: '#493f8f' }}>
+                                    Registration - PRAJÑĀ CONTEST 2025
+                                </h1>
                                 <p className="text-base font-bold leading-normal text-white-dark text-sm md:text-md lg:text-md">A Value Education Contest for Students</p>
                             </div>
 

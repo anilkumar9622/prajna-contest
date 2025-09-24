@@ -2,11 +2,8 @@
 import IconMail from '@/components/icon/icon-mail';
 import IconUser from '@/components/icon/icon-user';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import React from 'react';
-import { useSelector } from 'react-redux';
-import { IRootState } from '@/store';
 import IconPhoneCall from '../icon/icon-phone-call';
 import IconUsers from '../icon/icon-users';
 import { baceOptions, instituteOptions } from '@/lib/contant';
@@ -17,98 +14,76 @@ import Captcha from './captcha';
 import IconCalendar from '../icon/icon-calendar';
 import { formSchema } from '@/utils/schemaValidation';
 import Swal from 'sweetalert2';
+import RazorpayPayment from './RazorpayPayment';
+import SuccessModal from './SuccessModal';
+import CourierAddress from './CourierAddress';
+import RegistrationSummary from './RegistrationSummary';
 
-const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", className = "", }: any) => {
+const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = 'Verified', className = '' }: any) => {
+    // Add these new state variables
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [successData, setSuccessData] = useState<any>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
     const {
         control,
         handleSubmit,
         watch,
         setValue,
         reset,
-        // formState: { isSubmitting, isValid },   
         formState: { errors },
     } = useForm({
         resolver: yupResolver(formSchema),
         defaultValues: {
-            name: "",
-            gender: "",
-            dob: "", // string
-            email: "",
-            phone: "",
-            instituteType: "",
-            institute: "",
-            regBace: "",
-            registrationType: "",
+            name: '',
+            gender: '',
+            dob: '',
+            email: '',
+            phone: '',
+            instituteType: '',
+            institute: '',
+            regBace: '',
+            registrationType: '',
 
-            // representative object
             representative: {
-                name: "",
-                contact: "",
+                name: '',
+                contact: '',
             },
 
-            isCourier: false, // controls courier fields
+            isCourier: false,
             courier: {
-                houseNo: "",
-                line1: "",
-                line2: "",
-                city: "",
-                district: "",
-                state: "",
-                pincode: "",
-                contact: "",
+                houseNo: '',
+                line1: '',
+                line2: '',
+                city: '',
+                district: '',
+                state: '',
+                pincode: '',
+                contact: '',
             },
 
-            remarks: "",
+            remarks: '',
             agree: false,
-            captcha: "",
-        }
-
+            captcha: '',
+        },
     });
-    const [checked, setChecked] = useState(false);
-
-    const toggle = () => {
-        const next = !checked;
-        setChecked(next);
-        onVerify?.(next);
-    };
-    const isRtl = useSelector((state: IRootState) => state.themeConfig.rtlClass) === 'rtl';
-    const [date1, setDate1] = useState<any>('');
-    const router = useRouter();
-
-    const submitForm = (e: any) => {
-        e.preventDefault();
-        router.push('/');
-    };
-    const [institute, setInstitute] = useState("");
+    // institute is managed by react-hook-form; no local institute state needed
     const [isOther, setIsOther] = useState(false);
 
     const handleChange = (value: any) => {
-        if (value === "Other") {
+        if (value === 'Other') {
             setIsOther(true);
-            setInstitute(""); // reset input
-            reset({ ...watch(), institute: "" }); // reset form value
+            // clear form value when switching to free-text input
+            reset({ ...watch(), institute: '' });
         } else {
             setIsOther(false);
-            setInstitute(value);
+            setValue('institute', value, { shouldValidate: true });
         }
     };
     const [isCourier, setIsCourier] = useState(false);
-    console.log("isCourier", isCourier);
     const [courierCharge, setCourierCharge] = useState(0);
 
-    const [registrationType, setRegistrationType] = useState("");
-    const [offlineCollector, setOfflineCollector] = useState({ name: "", contact: "" });
-    const [courier, setCourier] = useState({
-        houseNo: "",
-        building: "",
-        line1: "",
-        line2: "",
-        city: "",
-        district: "",
-        state: "",
-        pincode: "",
-        contact: ""
-    });
+    const [registrationType, setRegistrationType] = useState('');
     const [services, setServices] = useState<any>({
         language: false,
         courier: false,
@@ -117,30 +92,22 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
     const handleServiceChange = (key: any) => {
         setServices({ ...services, [key]: !services[key] });
     };
- 
+
     const [registrationCharge, setRegistrationCharge] = useState<number>(0);
     const instituteTypeHandler = (value: string | number) => {
-  if (value === "school") setRegistrationCharge(200);
-  else if (value === "college") setRegistrationCharge(300);
-  else setRegistrationCharge(0); // default if needed
-};
+        if (value === 'school') setRegistrationCharge(200);
+        else if (value === 'college') setRegistrationCharge(300);
+        else setRegistrationCharge(0);
+    };
 
     const languageCharge = services.language ? 100 : 0;
 
-
     useEffect(() => {
-        setCourierCharge(registrationType === "online" ? 100 : 0);
-    }, [registrationType]);
+        setCourierCharge(registrationType === 'online' && isCourier ? 100 : 0);
+    }, [registrationType, isCourier]);
 
     const total = registrationCharge + languageCharge + courierCharge;
-    console.log("courierCharge", registrationType, courierCharge);
-    const [gender, setGender] = useState("");
-    const [instituteType, setInstituteType] = useState("");
 
-    const [regBace, setRegBace] = useState("");
-
-
-    //   const registrationType = watch("registrationType");
     const showMessage = (msg = '', type = 'success') => {
         const toast: any = Swal.mixin({
             toast: true,
@@ -155,45 +122,104 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
             padding: '10px 20px',
         });
     };
-    const onSubmit = async (formData: any) => {
-        // const {captcha, ...val} = formData
-        console.log
-        const res = await fetch("/api/auth/register", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(formData),
-        });
 
-        const data = await res.json();
-        if (res.status === 201) {
-            showMessage("Registered successfully!", "success");
-            // router.push("/dashboard");
-        } else if (res.status === 400) {
-            showMessage(data.errors.join(", "), "error");
-        } else {
-            showMessage(data.error || "Something went wrong!", "error");
+    const handlePaymentSuccess = async (paymentData: any) => {
+        console.log('Payment successful:', paymentData);
+        setIsSubmitting(true);
+
+        try {
+            const formData = watch();
+
+            if (isCourier) {
+                console.log('Sending courier address to backend:', formData.courier);
+            }
+
+            const payload = {
+                ...formData,
+                ...(isCourier && { courier: formData.courier }),
+                totalAmount: total,
+                registrationCharge,
+                languageCharge,
+                courierCharge,
+                paymentId: paymentData.razorpay_payment_id,
+                orderId: paymentData.razorpay_order_id,
+                signature: paymentData.razorpay_signature,
+                registrationDate: new Date().toISOString(),
+            };
+
+            const response = await fetch('/api/registration', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                console.log('Registration saved:', result);
+
+                setSuccessData({
+                    name: formData.name,
+                    registrationId: result.registrationId,
+                    paymentId: paymentData.razorpay_payment_id,
+                    amount: total,
+                });
+
+                setShowSuccessModal(true);
+                reset(); // react-hook-form reset
+                // reset the visible recaptcha widget so it doesn't show "expired"
+                if (typeof window !== 'undefined' && (window as any).grecaptcha) {
+                    try {
+                        (window as any).grecaptcha.reset();
+                    } catch (e) {
+                        /* ignore */
+                    }
+                }
+                setIsCourier(false);
+            } else {
+                showMessage(`Registration failed: ${result.error}`, 'error');
+            }
+        } catch (error) {
+            console.error('Registration error:', error);
+            showMessage('Registration failed due to network error.', 'error');
+        } finally {
+            setIsSubmitting(false);
         }
-        console.log(data);
     };
-    const error = (errors: any) => {
-        console.log("errors", errors);
-    }
 
+    const handlePaymentFailure = (error: any) => {
+        console.log('Payment failed:', error);
+        showMessage('Payment failed. Please try again.', 'error');
+        setIsSubmitting(false);
+    };
 
+    const phoneValue = String(watch('phone') || '');
+    const phoneDigits = phoneValue.replace(/\D/g, '');
+    const isPhoneValid = /^\d{10}$/.test(phoneDigits);
+
+    const showPhoneFormatError = phoneValue && !isPhoneValid;
+
+    const baseValid = Boolean(
+        watch('name') && watch('email') && isPhoneValid && watch('instituteType') && watch('institute') && watch('regBace') && watch('registrationType') && watch('agree') && watch('captcha'),
+    );
+
+    // If courier is selected for online registration, ensure courier address fields are present
+    const courierHouse = watch('courier.houseNo');
+    const courierCity = watch('courier.city');
+    const courierState = watch('courier.state');
+    const courierPincode = watch('courier.pincode');
+    const courierContactValue = String(watch('courier.contact') || '').replace(/\D/g, '');
+    const isCourierContactValid = /^\d{10}$/.test(courierContactValue);
+
+    const courierFieldsValid = registrationType === 'online' && isCourier ? Boolean(courierHouse && courierCity && courierState && courierPincode && isCourierContactValid) : true;
+
+    const isFormValid = baseValid && courierFieldsValid;
 
     return (
         <>
-            <form className="space-y-5 dark:text-white" onSubmit={handleSubmit(onSubmit, error)}>
+            <form className="space-y-5 dark:text-white">
                 <div className="relative text-white-dark">
-                    <HookFormInputField
-                        name="name"
-                        control={control}
-                        placeholder="Enter Full Name"
-                        label="Full Name"
-                        required
-                        error={errors.name?.message}
-                        icon={<IconUser fill={true} />} // 👈 Pass icon
-                    />
+                    <HookFormInputField name="name" control={control} placeholder="Enter Full Name" label="Full Name" required error={errors.name?.message} icon={<IconUser fill={true} />} />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="relative text-white-dark">
@@ -203,36 +229,18 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
                             label="Gender"
                             placeholder="Select Gender"
                             options={[
-                                { value: "male", label: "Male" },
-                                { value: "female", label: "Female" },
+                                { value: 'male', label: 'Male' },
+                                { value: 'female', label: 'Female' },
                             ]}
                             required
                             error={errors.gender?.message}
                             icon={<IconUsers />}
                         />
                     </div>
-                    <HookFormInputField
-                        name="dob"
-                        control={control}
-                        placeholder="Enter Date of Birth"
-                        label="Date of Birth"
-                        required
-                        type="date"
-                        error={errors.dob?.message}
-                        icon={<IconCalendar />}
-                    />
+                    <HookFormInputField name="dob" control={control} placeholder="Enter Date of Birth" label="Date of Birth" required type="date" error={errors.dob?.message} icon={<IconCalendar />} />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <HookFormInputField
-                        name="email"
-                        control={control}
-                        placeholder="Enter Email"
-                        label="Email"
-                        required
-                        type="email"
-                        error={errors.email?.message}
-                        icon={<IconMail fill={true} />} // 👈 Pass icon
-                    />
+                    <HookFormInputField name="email" control={control} placeholder="Enter Email" label="Email" required type="email" error={errors.email?.message} icon={<IconMail fill={true} />} />
                     <HookFormInputField
                         name="phone"
                         control={control}
@@ -243,6 +251,7 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
                         error={errors.phone?.message}
                         icon={<IconPhoneCall fill={true} />}
                     />
+                    {showPhoneFormatError && <span className="text-red-500 text-sm mt-1">Phone must be 10 digits (numbers only)</span>}
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2">
                     <HookFormSelectField
@@ -252,22 +261,13 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
                         callback={instituteTypeHandler}
                         placeholder="Select Institute Type"
                         options={[
-                            { value: "school", label: "School (Class 9 and above only)" },
-                            { value: "college", label: "College" },
+                            { value: 'school', label: 'School (Class 9 and above only)' },
+                            { value: 'college', label: 'College' },
                         ]}
                         required
                         error={errors.instituteType?.message}
                     />
                 </div>
-                {/* <div className="flex items-center p-3.5 rounded text-secondary bg-secondary-light dark:bg-secondary-dark-light">
-                    <span className="ltr:pr-2 rtl:pl-2">
-                        <strong className="ltr:mr-1 rtl:ml-1">Alert!</strong> Make sure the student is in class 9 or higher.
-
-                    </span>
-                    <button type="button" className="ltr:ml-auto rtl:mr-auto hover:opacity-80">
-                    </button>
-                </div> */}
-
 
                 <div className="flex flex-col ">
                     {!isOther ? (
@@ -281,21 +281,34 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
                                     label: inst,
                                     value: inst,
                                 })),
-                                { label: "Other", value: "Other" },
+                                { label: 'Other', value: 'Other' },
                             ]}
                             required
                             callback={handleChange}
                             error={errors.institute?.message}
                         />
                     ) : (
-                        <HookFormInputField
-                            name="institute"
-                            control={control}
-                            placeholder="Enter Institute Name"
-                            label="Institute Name"
-                            required
-                            error={errors.institute?.message}
-                        />
+                        <div className="flex items-start gap-3">
+                            <div className="flex-1">
+                                <HookFormInputField name="institute" control={control} placeholder="Enter Institute Name" label="Institute Name" required error={errors.institute?.message} />
+                            </div>
+                            <div className="pt-6">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsOther(false);
+                                        setValue('institute', '', { shouldValidate: true });
+                                    }}
+                                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-blue-200 text-blue-600 rounded-full shadow-sm hover:shadow-md hover:bg-blue-50 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                        <path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 11-2 0V6H5v8h10v-1a1 1 0 112 0v2a1 1 0 01-1 1H4a1 1 0 01-1-1V5z" clipRule="evenodd" />
+                                        <path d="M7 9a1 1 0 011-1h6a1 1 0 110 2H8a1 1 0 01-1-1z" />
+                                    </svg>
+                                    <span className="text-sm font-medium">Choose from list</span>
+                                </button>
+                            </div>
+                        </div>
                     )}
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -315,10 +328,10 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
                         name="registrationType"
                         control={control}
                         label="Registration Type"
-                        placeholder='-- Select Type --'
+                        placeholder="-- Select Type --"
                         options={[
-                            { value: "online", label: "Online" },
-                            { value: "offline", label: "Offline" },
+                            { value: 'online', label: 'Online' },
+                            { value: 'offline', label: 'Offline' },
                         ]}
                         required
                         error={errors.registrationType?.message}
@@ -326,16 +339,43 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
                     />
                 </div>
 
-                {registrationType === "offline" && (
+                <div className="mt-4">
+                    <label className="flex items-center justify-between gap-2 cursor-pointer mb-0 p-1">
+                        <div className="flex items-center gap-3">
+                            <input
+                                type="checkbox"
+                                checked={services.language}
+                                onChange={() => handleServiceChange('language')}
+                                className="h-4 w-4 rounded border-gray-300 text-blue-600"
+                            />
+                            <div>
+                                <div className="text-sm text-gray-800 dark:text-gray-200">Bhagavad Gita (English)</div>
+                                <div className="text-xs text-gray-500">Includes printed copy (+ ₹100)</div>
+                            </div>
+                        </div>
+                        <div className="text-sm font-medium text-gray-800 dark:text-gray-100">+ ₹100</div>
+                    </label>
+                </div>
+
+                {registrationType === 'online' && (
+                    <div className="mt-1 mb-5 space-y-3 border rounded-lg p-2 bg-blue-50 border-blue-600">
+                        <label className="flex items-center justify-between gap-2 cursor-pointer mb-0 p-1">
+                            <span className="text-sm text-gray-700 dark:text-gray-200">Send Prajna Kit Via Courier</span>
+                            <HookFormInputField
+                                name="isCourier"
+                                control={control}
+                                required
+                                type="checkbox"
+                                callback={(val: any) => setIsCourier(val)}
+                                className="form-checkbox h-5 w-5 text-blue-600 border-gray-400"
+                            />
+                        </label>
+                    </div>
+                )}
+
+                {registrationType === 'offline' && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 border p-4 rounded-lg bg-blue-50 border-blue-600">
-                        <HookFormInputField
-                            name="representative.name"
-                            control={control}
-                            label="Representative Name"
-                            placeholder="Enter Name"
-                            required
-                            error={errors.representative?.name?.message}
-                        />
+                        <HookFormInputField name="representative.name" control={control} label="Representative Name" placeholder="Enter Name" required error={errors.representative?.name?.message} />
                         <HookFormInputField
                             name="representative.contact"
                             control={control}
@@ -343,230 +383,53 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
                             placeholder="Enter Contact"
                             required
                             error={errors.representative?.contact?.message}
-
                         />
                     </div>
                 )}
-                {registrationType === "online" && (
-                    <div className="mt-1 mb-5 space-y-3 border rounded-lg p-2 bg-blue-50 border-blue-600">
-                        <label className="flex items-center justify-between gap-2 cursor-pointer mb-0 p-1">
-                            <span className="text-sm text-gray-700 dark:text-gray-200">
-                                Send Prajna Kit Via Courier
-                            </span>
-                            {/* <input
-                                type="checkbox"
-                                className="form-checkbox border-gray-400 bg-white h-5 w-5 text-blue-600"
-                                checked={isCourier}
-                                onChange={() => setIsCourier(!isCourier)}
-                            /> */}
-                            <HookFormInputField
-                                name="isCourier"
-                                control={control}
-                                required
-                                type="checkbox"
-                                callback={(val: any) => setIsCourier(val)}
-                                className="form-checkbox h-5 w-5 text-blue-600 border-gray-400 bg-whit"
-                            />
-
-                        </label>
-                    </div>)}
-
-                {registrationType === "online" && isCourier && (
-                    <div className="mt-4 border p-4 rounded-lg space-y-3 bg-blue-50 border-blue-600">
-                        <div className="flex items-center gap-2">
-                            <h3 className="font-semibold">Courier Address</h3>
-                            <p className="text-xs text-gray-500">
-                                ( *This service is only available for <span className="font-semibold">Delhi & NCR </span>)
-                            </p>
-                        </div>
-
-                        <HookFormInputField
-                            name="courier.houseNo"
-                            control={control}
-                            placeholder="House No., Building Name *"
-                            required
-                            error={errors.courier?.houseNo?.message}
-
-                        />
-                        <HookFormInputField
-                            name="courier.line1"
-                            control={control}
-                            placeholder="Address Line 1"
-                        />
-                        <HookFormInputField
-                            name="courier.line2"
-                            control={control}
-                            placeholder="Address Line 2"
-                        />
-                        <div className="grid grid-cols-2 gap-4">
-                            <HookFormInputField
-                                name="courier.city"
-                                control={control}
-                                placeholder="City*"
-                                required
-                                error={errors.courier?.city?.message}
-
-                            />
-                            <HookFormInputField
-                                name="courier.district"
-                                control={control}
-                                placeholder="District"
-                            />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <HookFormInputField
-                                name="courier.state"
-                                control={control}
-                                placeholder="State*"
-                                required
-                                error={errors.courier?.state?.message}
-
-                            />
-                            <HookFormInputField
-                                name="courier.pincode"
-                                control={control}
-                                placeholder="Pincode*"
-                                required
-                                error={errors.courier?.pincode?.message}
-
-                            />
-                        </div>
-                        <HookFormInputField
-                            name="courier.contact"
-                            control={control}
-                            placeholder="Contact Number*"
-                            required
-                            error={errors.courier?.contact?.message}
-
-                        />
-                    </div>
-                )}
-                <HookFormInputField
-                    name="remarks"
-                    control={control}
-                    placeholder="Enter remarks"
-                    label="Remarks"
-                />
-                <div className="mt-8 max-w-md mx-auto p-6 
-                       bg-white dark:bg-gray-800 
-                       border border-gray-200 dark:border-gray-700 
-                       border-l-4 border-l-blue-600 
-                        rounded-lg panel">
-                    <div className="mb-6 p-3 bg-green-50 dark:bg-green-900 border border-green-300 dark:border-green-700 rounded-lg text-sm">
-                        The <span className="font-semibold">Prajna Contest Kit</span> will be provided for your preparation.
-                        <br />
-                    </div>
-                    <span className="text-gray-700 dark:text-gray-300">
-                        You may also opt language preference
-                    </span>
-                    <div className="mt-1 mb-5 space-y-3 border rounded-lg p-2 bg-[#fff9ed] border-red-900">
-
-                        <label className="flex items-center justify-between gap-2 cursor-pointer mb-0 p-1">
-
-                            <span className="text-sm text-gray-700 dark:text-gray-200">
-                                English Bhagavad Gita (+ ₹100)
-                            </span>
-                            <input
-                                type="checkbox"
-                                className="form-checkbox h-5 w-5 text-blue-600 border-gray-400 bg-white"
-                                checked={services.language}
-                                onChange={() => handleServiceChange("language")}
-                            />
-                        </label>
-                    </div>
-
-                    <div className='border-b border-l-2 mb-2'></div>
-
-                    <div className="space-y-3 text-sm">
-                        {/* Registration */}
-                        <div className="flex justify-between">
-                            <span className="text-gray-600 dark:text-gray-300">Registration Charge</span>
-                            <span className="font-medium text-gray-800 dark:text-gray-100">
-                                ₹{registrationCharge}
-                            </span>
-                        </div>
-
-                        {/* Language */}
-                        {services.language && (
-                            <div className="flex justify-between">
-                                <span className="text-gray-600 dark:text-gray-300">
-                                    Bhagavad Gita (English) <span className="text-xs text-gray-500"></span>
-                                </span>
-                                <span className="font-medium text-gray-800 dark:text-gray-100">+ ₹100</span>
-                            </div>
-                        )}
-
-                        {/* Courier */}
-                        {courierCharge > 0 && (
-                            <div className="flex justify-between">
-                                <span className="text-gray-600 dark:text-gray-300">
-                                    <p>Courier Charges</p>
-                                    <p className="text-xs text-gray-500 mt-2">
-                                        *Delivery Service only for <span className="font-semibold">Delhi & NCR</span>
-                                    </p>
-                                </span>
-                                <span className="font-medium text-gray-800 dark:text-gray-100">+ ₹100</span>
-                            </div>
-                        )}
-
-                        <div className="border-t border-gray-300 dark:border-gray-600 my-3"></div>
-
-                        {/* Total */}
-                        <div className="flex justify-between text-base font-bold">
-                            <span className="text-gray-900 dark:text-white">Total Amount</span>
-                            <span className="text-blue-600 dark:text-blue-400">₹{total}</span>
-                        </div>
-                    </div>
-                </div>
-
+                {registrationType === 'online' && isCourier && <CourierAddress control={control} errors={errors} />}
+                <HookFormInputField name="remarks" control={control} placeholder="Enter remarks" label="Remarks" />
+                <RegistrationSummary registrationCharge={registrationCharge} languageCharge={languageCharge} courierCharge={courierCharge} total={total} />
 
                 <div className="mt-4 space-y-3">
                     <label className="flex items-center gap-2 cursor-pointer">
-                        {/* <input
-                            type="checkbox"
-                            className="form-checkbox h-4 w-4 text-blue-600"
-                        /> */}
-                        <HookFormInputField
-                            name="agree"
-                            control={control}
-
-                            required
-                            type="checkbox"
-                            className="form-checkbox h-5 w-5 text-blue-600 border-gray-400 bg-whit"
-                        />
-                        <span className="text-sm text-gray-700 dark:text-gray-200">
-                            Details must be as per your Institute ID Card
-                            otherwise your registration is invalid
-                        </span>
+                        <HookFormInputField name="agree" control={control} required type="checkbox" className="form-checkbox h-5 w-5 text-blue-600 border-gray-400 bg-whit" />
+                        <span className="text-sm text-gray-700 dark:text-gray-200">Details must be as per your Institute ID Card otherwise your registration is invalid</span>
                     </label>
-                    {errors.agree?.message && <span className='text-red-500 text-sm mt-1'>{errors.agree?.message}</span>}
+                    {errors.agree?.message && <span className="text-red-500 text-sm mt-1">{errors.agree?.message}</span>}
                 </div>
-                <Captcha
-                    onChange={(token: any) => setValue("captcha", token, { shouldValidate: true })}
-                    onExpired={() => setValue("captcha", "", { shouldValidate: true })}
-                />
+                <Captcha onChange={(token: any) => setValue('captcha', token, { shouldValidate: true })} onExpired={() => setValue('captcha', '', { shouldValidate: true })} />
 
                 <div className="hidden">
-                    <HookFormInputField
-                        name="captcha"
-                        control={control}
-                        type="hidden"
-                    />
+                    <HookFormInputField name="captcha" control={control} type="hidden" />
                 </div>
 
-                {errors.captcha?.message &&
-                    <span className="text-red-500 text-sm inline lg:block md:block  text-center leading-none">{errors.captcha?.message}</span>
-                }
+                {errors.captcha?.message && <span className="text-red-500 text-sm inline lg:block md:block  text-center leading-none">{errors.captcha?.message}</span>}
 
-
-
-                <button type="submit" className="btn btn-gradient p-3 !mt-6 w-full border-0 uppercase shadow-[0_10px_20px_-10px_rgba(67,97,238,0.44)]">
-                    Next
-                </button>
+                <RazorpayPayment
+                    amount={total}
+                    onPaymentSuccess={handlePaymentSuccess}
+                    onPaymentFailure={handlePaymentFailure}
+                    customerInfo={{
+                        name: watch('name'),
+                        email: watch('email'),
+                        contact: watch('phone'),
+                    }}
+                    buttonText={`Pay ₹${total} & Register`}
+                    disabled={!isFormValid}
+                    className="btn btn-gradient p-3 !mt-6 w-full border-0 uppercase shadow-[0_10px_20px_-10px_rgba(67,97,238,0.44)]"
+                />
             </form>
-
-
-
+            {showSuccessModal && successData && (
+                <SuccessModal
+                    data={successData}
+                    onClose={() => {
+                        setShowSuccessModal(false);
+                        setSuccessData(null);
+                        reset();
+                        setIsCourier(false);
+                    }}
+                />
+            )}
         </>
     );
 };

@@ -148,7 +148,8 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
             position: 'top',
             showConfirmButton: false,
             timer: 3000,
-            customClass: { container: 'toast' },
+            customClass: { container: 'toast', popup: 'small-toast', },
+            
         });
         toast.fire({
             icon: type,
@@ -168,7 +169,7 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
         const data = await res.json();
         if (res.status === 201) {
             showMessage("Registered successfully!", "success");
-            // router.push("/dashboard");
+            router.push("/dashboard");
         } else if (res.status === 400) {
             showMessage(data.errors.join(", "), "error");
         } else {
@@ -178,6 +179,7 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
     };
     const error = (errors: any) => {
         console.log("errors", errors);
+        showMessage(errors.message || "Validation Error", "error");
     }
 
 
@@ -564,10 +566,26 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
                 <button type="submit" className="btn btn-gradient p-3 !mt-6 w-full border-0 uppercase shadow-[0_10px_20px_-10px_rgba(67,97,238,0.44)]">
                     Next
                 </button>
-                <SendEmailPage/>
+                {/* <SendEmailPage/> */}
             </form>
 
+<style jsx global>
+    {`
+    /* target title inside toast */
+    .small-toast{
+        padding: 10px 20px !important;
+    }
+.small-toast .swal2-title {
+  font-size: 16px; /* smaller text */
+  line-height: 1.2; /* optional, adjust spacing */
+}
 
+.small-toast .swal2-icon {
+  width: 12px;   /* optional: smaller icon */
+  height: 12px;
+}
+`}
+</style>
 
         </>
     );

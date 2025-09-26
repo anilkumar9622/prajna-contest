@@ -42,8 +42,11 @@ const BoxedSignUp = () => {
                         </span>
                     </div>
                     <div className="ml-auto text-sm">
-                        Already a member?{" "}
-                        Login
+                        {" "}
+                    <Link href="/dashboard" className="underline text-primary font-bold">
+
+                        Admin Panel
+                    </Link>
                         {/* <Login /> */}
                     </div>
                 </div>

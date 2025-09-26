@@ -10,7 +10,7 @@ export default function SendEmailPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        to: "abhaypatel6794@gmail.com",
+        to: "anilchauhan.src@gmail.com",
         subject: "Payment Successful",
         message: "Thank you for your payment! Your transaction was successful.",
       }),

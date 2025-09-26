@@ -20,9 +20,10 @@ const nunito = Nunito({
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
         <html lang="en">
-            <body className={nunito.variable}>
+            <body className={`${nunito?.variable} font-nunito `}>
                 <ProviderComponent>{children}</ProviderComponent>
             </body>
+           
         </html>
     );
 }

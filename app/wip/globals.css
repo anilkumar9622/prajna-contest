@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@400;500;600;700&display=swap");
+/* @import url("https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@400;500;600;700&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -35,7 +35,7 @@ html{
 }
 
 /*=============== SCROLL BAR ===============*/
-::-webkit-scrollbar{
+/* ::-webkit-scrollbar{
   width: 0;
   visibility: hidden;
 }
@@ -66,5 +66,5 @@ body {
   background: var(--background);
   font-family: var(--body-font);
   transition: all ease-in-out 0.3s;
-}
+}  */
 

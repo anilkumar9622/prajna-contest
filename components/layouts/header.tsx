@@ -154,7 +154,7 @@ const Header = () => {
                            { themeConfig.semidark  ? <img className="ml-[5px] w-8 flex-none" src="https://bace.org.in/assets/image/main-data/bace_logo-dv-min.png" alt="logo" />:<img className="ml-[5px] w-8 flex-none" src="/assets/images/logo.png" alt="logo" />}
 
                             {/* <img className="inline w-8 ltr:-ml-1 rtl:-mr-1" src="/assets/images/logo.png" alt="logo" /> */}
-                            <span className="hidden align-middle text-2xl  font-semibold  transition-all duration-300 ltr:ml-1.5 rtl:mr-1.5 dark:text-white-light md:inline">BACE</span>
+                            <span className="hidden align-middle text-2xl  font-semibold  transition-all duration-300 ltr:ml-1.5 rtl:mr-1.5 dark:text-white-light md:inline text-[#493f8f]-700">BACE</span>
                         </Link>
                         <button
                             type="button"

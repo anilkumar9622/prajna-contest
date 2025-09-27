@@ -450,7 +450,7 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
                     placeholder="Enter remarks"
                     label="Remarks"
                 />
-                <div className="mt-8 max-w-md mx-auto p-6 
+                <div className="mt-8 max-w-md mx-auto  px-4 lg:p-6
                        bg-white dark:bg-gray-800 
                        border border-gray-200 dark:border-gray-700 
                        border-l-4 border-l-blue-600 

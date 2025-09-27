@@ -91,7 +91,7 @@ console.log({semidark, themeConfig});
                     <div className="flex items-center justify-between px-4 py-3">
                         <Link href="/" className="main-logo flex shrink-0 items-center">
                            { themeConfig.isDarkMode ? <img className="ml-[5px] w-8 flex-none" src="https://bace.org.in/assets/image/main-data/bace_logo-dv-min.png" alt="logo" />:<img className="ml-[5px] w-8 flex-none" src="/assets/images/logo.png" alt="logo" />}
-                            <span className="align-middle text-2xl font-semibold ltr:ml-1.5 rtl:mr-1.5 dark:text-white-light lg:inline">BACE</span>
+                            <span className="align-middle text-2xl font-semibold ltr:ml-1.5 rtl:mr-1.5 dark:text-white-light lg:inline text-[#493f8f]">BACE</span>
                         </Link>
 
                         <button

@@ -55,7 +55,7 @@ function HookFormInputField({
               placeholder={placeholder}
               disabled={disabled}
               className={`${type=="checkbox" ? className : `form-input placeholder:text-white-dark 
-                border rounded-md w-full
+                border rounded-md w-full text-dark
                 ${icon ? "ps-10" : ""}
                 ${error ? "border-red-500" : "border-gray-300"}
                 ${disabled ? "cursor-not-allowed bg-gray-100" : ""}

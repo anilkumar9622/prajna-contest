@@ -64,7 +64,7 @@ function HookFormSelectField<T extends FieldValues>({
                 aria-invalid={!!error}
                 disabled={disabled}
                 className={`
-                  form-select w-full border rounded-md
+                  form-select w-full border rounded-md text-dark
                    ${icon ? "ps-10" : ""}
                   ${isEmpty ? "text-gray-400" : "text-gray-900"}
                   ${!error ? "border-gray-300" : "border-red-500"}

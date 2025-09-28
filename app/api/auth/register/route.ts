@@ -27,9 +27,10 @@ export async function POST(req: Request) {
       ...validatedData,
       createdAt: new Date(),
     });
-
+    const savedDoc = await docRef.get();
+    const userData = { id: savedDoc.id, ...savedDoc.data() };
     return NextResponse.json(
-      { message: "Registered successfully", id: docRef.id },
+      { message: "Registered successfully", data: userData },
       { status: 201 }
     );
   } catch (err: any) {

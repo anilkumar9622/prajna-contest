@@ -3,7 +3,7 @@ import IconMail from '@/components/icon/icon-mail';
 import IconUser from '@/components/icon/icon-user';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { IRootState } from '@/store';
@@ -18,6 +18,8 @@ import IconCalendar from '../icon/icon-calendar';
 import { formSchema } from '@/utils/schemaValidation';
 import Swal from 'sweetalert2';
 import SendEmailPage from './EmailSend';
+import RazorpayPayment from './RazorPayment';
+import SuccessModal from './SuccessModal';
 
 const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", className = "", }: any) => {
     const [registrationType, setRegistrationType] = useState("");
@@ -60,7 +62,14 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
                 pincode: "",
                 contact: "",
             },
-
+            payment: {
+                status: "pending",
+                paymentId: "",
+                orderId: "",
+                updatedAt: new Date(),
+                amount: ""
+            },
+            totalRegistrationAmount: "",
             remarks: "",
             agree: false,
             captcha: "",
@@ -100,18 +109,8 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
     const [courierCharge, setCourierCharge] = useState(0);
 
     // const [registrationType, setRegistrationType] = useState("");
-    const [offlineCollector, setOfflineCollector] = useState({ name: "", contact: "" });
-    const [courier, setCourier] = useState({
-        houseNo: "",
-        building: "",
-        line1: "",
-        line2: "",
-        city: "",
-        district: "",
-        state: "",
-        pincode: "",
-        contact: ""
-    });
+    const [autoLoadScript, setAutoLoadScript] = useState<boolean>(false);
+
     const [services, setServices] = useState<any>({
         language: false,
         courier: false,
@@ -120,13 +119,13 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
     const handleServiceChange = (key: any) => {
         setServices({ ...services, [key]: !services[key] });
     };
- 
+
     const [registrationCharge, setRegistrationCharge] = useState<number>(0);
     const instituteTypeHandler = (value: string | number) => {
-  if (value === "school") setRegistrationCharge(200);
-  else if (value === "college") setRegistrationCharge(300);
-  else setRegistrationCharge(0); // default if needed
-};
+        if (value === "school" || value === "college") setRegistrationCharge(200);
+        // else if (value === "college") setRegistrationCharge(300);
+        else setRegistrationCharge(0); // default if needed
+    };
 
     const languageCharge = services.language ? 100 : 0;
 
@@ -141,6 +140,8 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
     const [instituteType, setInstituteType] = useState("");
 
     const [regBace, setRegBace] = useState("");
+    const [userData, setUserData] = useState<any>();
+
 
 
     //   const registrationType = watch("registrationType");
@@ -151,7 +152,7 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
             showConfirmButton: false,
             timer: 3000,
             customClass: { container: 'toast', popup: 'small-toast', },
-            
+
         });
         toast.fire({
             icon: type,
@@ -159,32 +160,52 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
             padding: '10px 20px',
         });
     };
+    const razorpayRef = useRef<any>(null);
+    const [isLoading, setIsLoading] = useState(false);
+
     const onSubmit = async (formData: any) => {
-        // const {captcha, ...val} = formData
-        console.log
-        const res = await fetch("/api/auth/register", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(formData),
-        });
+        setIsLoading(true);
 
-        const data = await res.json();
-        if (res.status === 201) {
-            showMessage("Registered successfully!", "success");
-            router.push("/dashboard");
-        } else if (res.status === 400) {
-            showMessage(data.errors.join(", "), "error");
-        } else {
-            showMessage(data.error || "Something went wrong!", "error");
+        try {
+            const res = await fetch("/api/auth/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(formData),
+            });
+
+            const data = await res.json();
+            console.log({ data });
+
+            if (res.status === 201) {
+                showMessage("Your details were saved successfully!", "success");
+                setUserData(data?.data);
+
+                if (isCourier && razorpayRef.current) {
+                    // trigger payment without button click
+                    await razorpayRef.current.handlePayment();
+                } else {
+                    router.push("/success");
+                }
+            } else if (res.status === 400) {
+                showMessage(data?.errors?.join(", ") || "Validation error", "error");
+            } else {
+                showMessage(data?.error || "Something went wrong!", "error");
+            }
+        } catch (err: any) {
+            console.error("❌ Register API failed", err);
+            showMessage(err.message || "Network error, please try again.", "error");
+        } finally {
+            setIsLoading(false);
         }
-        console.log(data);
     };
+
     const error = (errors: any) => {
-        console.log("errors", errors);
-        showMessage(errors.message || "Validation Error", "error");
-    }
+        console.log("Form errors", errors);
+        showMessage(errors?.message || "Form validation failed!", "error");
+    };
 
-
+    const [showSuccess, setShowSuccess] = useState(false);
+    const [successData, setSuccessData] = useState<any>(null);
 
     return (
         <>
@@ -517,6 +538,12 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
                         <div className="border-t border-gray-300 dark:border-gray-600 my-3"></div>
 
                         {/* Total */}
+                        <HookFormInputField
+                            name="totalRegistrationAmount"
+                            control={control}
+                            type="hidden"
+                            defaultValue={total}
+                        />
                         <div className="flex justify-between text-base font-bold">
                             <span className="text-gray-900 dark:text-white">Total Amount</span>
                             <span className="text-blue-600 dark:text-blue-400">₹{total}</span>
@@ -564,15 +591,44 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
                 }
 
 
-
-                <button type="submit" className="btn btn-gradient p-3 !mt-6 w-full border-0 uppercase shadow-[0_10px_20px_-10px_rgba(67,97,238,0.44)]">
-                    Next
+                <button
+                    type="submit"
+                    disabled={isLoading}
+                    className={`btn btn-gradient p-3 !mt-6 w-full border-0 uppercase shadow-[0_10px_20px_-10px_rgba(67,97,238,0.44)] ${isLoading ? "opacity-70 cursor-not-allowed" : ""
+                        }`}
+                >
+                    {isLoading ? (
+                        <div className="flex items-center justify-center">
+                            <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-2"></div>
+                            Loading...
+                        </div>
+                    ) : (
+                        !isCourier ? "Register" : "Register & Pay"
+                    )}
                 </button>
-                {/* <SendEmailPage/> */}
-            </form>
 
-<style jsx global>
-    {`
+                {isCourier && autoLoadScript &&
+                    <RazorpayPayment
+                        ref={razorpayRef}
+                        autoLoadScript={autoLoadScript}
+                        amount={total}
+                        userId={userData?.id}
+                        customerInfo={{
+                            name: userData?.name,
+                            email: userData?.email,
+                            contact: userData?.phone,
+                        }}
+                        onPaymentSuccess={(res) => console.log("✅ success", res)}
+                        onPaymentFailure={(err) => console.log("❌ failed", err)}
+                    />
+
+                }
+
+                {/* <SendEmailPage/> */}
+            </form >
+
+            <style jsx global>
+                {`
     /* target title inside toast */
     .small-toast{
         padding: 10px 20px !important;
@@ -587,7 +643,7 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
   height: 12px;
 }
 `}
-</style>
+            </style>
 
         </>
     );

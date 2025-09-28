@@ -8,10 +8,11 @@ interface HookFormInputFieldProps {
   type?: string;
   error?: string;
   className?: string;
-  label?: string;
+  label?: React.ReactNode;
   required?: boolean;
   disabled?: boolean;
   icon?: React.ReactNode;
+  defaultValue?: any;
   callback?: (value: any) => void;
 
 }
@@ -28,14 +29,15 @@ function HookFormInputField({
   disabled = false,
   icon,
   callback,
+  defaultValue = type === "checkbox" ? false : "",
   ...rest
 }: HookFormInputFieldProps) {
   return (
-    <div className={`${(type=="checkbox" || name == "captcha" )? "" : "flex flex-col gap-1 w-full" }`}>
+    <div className={`${(type == "checkbox" || name == "captcha") ? "" : "flex flex-col gap-1 w-full"}`}>
       {label && (
         <label
           htmlFor={name}
-                   className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-0"
+          className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-0"
         >
           {label}
           {required && <span className="text-red-500">*</span>}
@@ -49,18 +51,18 @@ function HookFormInputField({
           render={({ field }) => (
             <input
               {...field}
-              value={field.value ?? ""}
+              value={type === "checkbox" ? undefined : field.value ?? defaultValue}
               checked={type === "checkbox" ? field.value : undefined}
               type={type}
               placeholder={placeholder}
               disabled={disabled}
-              className={`${type=="checkbox" ? className : `form-input placeholder:text-white-dark 
+              className={`${type == "checkbox" ? className : `form-input placeholder:text-white-dark 
                 border rounded-md w-full text-dark
                 ${icon ? "ps-10" : ""}
                 ${error ? "border-red-500" : "border-gray-300"}
                 ${disabled ? "cursor-not-allowed bg-gray-100" : ""}
                 ${className}`}`}
-               onChange={(e) => {
+              onChange={(e) => {
                 if (type === "checkbox") {
                   field.onChange(e.target.checked); // ✅ boolean for RHF
                   if (callback) callback(e.target.checked);
@@ -69,7 +71,7 @@ function HookFormInputField({
                   if (callback) callback(e.target.value);
                 }
               }}
-                {...rest}
+              {...rest}
             />
           )}
         />
@@ -85,7 +87,7 @@ function HookFormInputField({
       {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
       <style global>
         {
-            `
+          `
             input[type="date"]::placeholder {
             color: #9ca3af; /* gray-400 */
             }

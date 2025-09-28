@@ -116,6 +116,13 @@ export type Courier = {
   pincode: string;
   contact: string;
 };
+export type Payment = {
+  status: "pending" | "success" | "failed"; // enum-like string union
+  paymentId?: string;
+  orderId?: string;
+  updatedAt?: Date;
+  amount: string
+};
 
 export type FormValues = {
   id: string;
@@ -135,6 +142,8 @@ export type FormValues = {
   remarks?: string;
   agree: boolean;
   captcha: string;
+  payment: Payment;
+  totalRegistrationAmount: string;
 };
 
 // ----------------------
@@ -220,6 +229,18 @@ export const formSchema = yup.object().shape({
     .required("Agreement is required"),
 
   captcha: yup.string().required("Captcha verification is required"),
+   payment: yup.object({
+    status: yup
+      .string()
+      .oneOf(["pending", "success", "failed"])
+      .default("pending")
+      .required(),
+    paymentId: yup.string().optional(),
+    orderId: yup.string().optional(),
+    updatedAt: yup.date().default(() => new Date()).optional(),
+    amount: yup.string().optional()
+  }),
+  totalRegistrationAmount: yup.string().optional()
 });
 
 

@@ -140,6 +140,7 @@ export type FormValues = {
 // ----------------------
 // Yup Validation Schema
 // ----------------------
+
 export const formSchema = yup.object().shape({
   name: yup.string().required("Full name is required"),
   gender: yup.string().required("Gender is required"),
@@ -161,46 +162,55 @@ export const formSchema = yup.object().shape({
   regBace: yup.string().required("Registration BACE is required"),
   registrationType: yup.string().required("Registration type is required"),
 
-  representative: yup
-    .object({
-      name: yup.string().required("Representative name is required"),
-      contact: yup
-        .string()
-        .matches(/^[0-9]{10}$/, "Contact must be 10 digits")
-        .required("Representative contact is required"),
-    })
-    .when("registrationType", {
-      is: "offline",
-      then: (schema) => schema.required(),
-      otherwise: (schema) => schema.optional(),
-    }),
-
+  // Representative required only for offline
+  representative: yup.object({
+    name: yup.string(),
+    contact: yup.string(),
+  }).when("registrationType", {
+    is: "offline",
+    then: (schema) =>
+      schema.shape({
+        name: yup.string().required("Representative name is required"),
+        contact: yup
+          .string()
+          .matches(/^[0-9]{10}$/, "Contact must be 10 digits")
+          .required("Representative contact is required"),
+      }),
+    otherwise: (schema) => schema.notRequired(),
+  }),
 
   isCourier: yup.boolean().optional(),
 
-  courier: yup
+  // Courier fields optional unless isCourier is true
+ courier: yup
     .object({
-      houseNo: yup.string().required("House No is required"),
-      line1: yup.string().required("Address Line 1 is required"),
+      houseNo: yup.string(),
+      line1: yup.string().optional(),
       line2: yup.string().optional(),
-      city: yup.string().required("City is required"),
-      district: yup.string().required("District is required"),
-      state: yup.string().required("State is required"),
-      pincode: yup
-        .string()
-        .matches(/^[0-9]{6}$/, "Pincode must be 6 digits")
-        .required("Pincode is required"),
-      contact: yup
-        .string()
-        .matches(/^[0-9]{10}$/, "Courier contact must be 10 digits")
-        .required("Courier contact is required"),
+      city: yup.string(),
+      district: yup.string().optional(),
+      state: yup.string(),
+      pincode: yup.string(),
+      contact: yup.string()
     })
     .when("isCourier", {
       is: true,
-      then: (schema) => schema.required(), // make entire object required if isCourier is true
-      otherwise: (schema) => schema.optional(), // otherwise optional
+      then: (schema) =>
+        schema.shape({
+          houseNo: yup.string().required("House No is required"),
+          city: yup.string().required("City is required"),
+          state: yup.string().required("State is required"),
+          pincode: yup
+            .string()
+            .matches(/^[0-9]{6}$/, "Pincode must be 6 digits")
+            .required("Pincode is required"),
+          contact: yup
+            .string()
+            .matches(/^[0-9]{10}$/, "Courier contact must be 10 digits")
+            .required("Courier contact is required"),
+        }),
+      otherwise: (schema) => schema.notRequired(),
     }),
-
 
   remarks: yup.string().max(500).optional(),
 

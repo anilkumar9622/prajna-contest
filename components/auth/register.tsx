@@ -20,6 +20,8 @@ import Swal from 'sweetalert2';
 import SendEmailPage from './EmailSend';
 
 const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", className = "", }: any) => {
+    const [registrationType, setRegistrationType] = useState("");
+
     const {
         control,
         handleSubmit,
@@ -97,7 +99,7 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
     console.log("isCourier", isCourier);
     const [courierCharge, setCourierCharge] = useState(0);
 
-    const [registrationType, setRegistrationType] = useState("");
+    // const [registrationType, setRegistrationType] = useState("");
     const [offlineCollector, setOfflineCollector] = useState({ name: "", contact: "" });
     const [courier, setCourier] = useState({
         houseNo: "",

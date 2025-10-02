@@ -1,10 +1,12 @@
+// import { sendEmail } from '@/utils/email';
+import { sendEmail } from '@/lib/nodemailer';
 import { db } from '@/utils/firebaseAdmin';
 import crypto from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
     try {
-        const { razorpay_order_id, razorpay_payment_id, razorpay_signature, user_id, amount, error } = await request.json();
+        const { razorpay_order_id, razorpay_payment_id, razorpay_signature, user_id, amount, error, email } = await request.json();
 
         const secret = process.env.RAZORPAY_KEY_SECRET || '';
 
@@ -13,7 +15,7 @@ export async function POST(request: NextRequest) {
             await db.collection("user").doc(user_id).update({
                 payment: {
                     status: "failed",
-                    amount: amount/100,
+                    amount: amount / 100,
                     paymentId: razorpay_payment_id || "",
                     orderId: razorpay_order_id || "",
                     errorMessage: error?.description || "Payment failed",
@@ -33,11 +35,16 @@ export async function POST(request: NextRequest) {
             await db.collection("user").doc(user_id).update({
                 payment: {
                     status: "success",
-                    amount: amount/100,
+                    amount: amount / 100,
                     paymentId: razorpay_payment_id,
                     orderId: razorpay_order_id,
                     updatedAt: new Date(),
                 },
+            });
+            await sendEmail({
+                to: email,
+                subject: "Registration of Prajna Contest 2026",
+                message: "Thank you for registering with us 🎉",
             });
             return NextResponse.json({ success: true, message: 'Payment verified successfully' });
         } else {

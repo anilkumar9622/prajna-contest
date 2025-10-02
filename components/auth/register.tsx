@@ -20,6 +20,7 @@ import Swal from 'sweetalert2';
 import SendEmailPage from './EmailSend';
 import RazorpayPayment from './RazorPayment';
 import SuccessModal from './SuccessModal';
+import { sendEmail } from '@/utils/email';
 
 const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", className = "", }: any) => {
     const [registrationType, setRegistrationType] = useState("");
@@ -182,9 +183,18 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
 
                 if (isCourier && razorpayRef.current) {
                     // trigger payment without button click
+                    console.log(">>>>>>>>>>>>>>")
                     await razorpayRef.current.handlePayment();
-                } else {
+                }
+                if (data?.data && registrationType && registrationType === "offline") {
+                    await sendEmail({
+                        to: data?.data?.email,
+                        subject: "Welcome!",
+                        message: "Thank you for registering with us 🎉",
+                    });
                     router.push("/success");
+                } else {
+                    setAutoLoadScript(true)
                 }
             } else if (res.status === 400) {
                 showMessage(data?.errors?.join(", ") || "Validation error", "error");
@@ -624,7 +634,7 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
 
                 }
 
-                {/* <SendEmailPage/> */}
+                <SendEmailPage />
             </form >
 
             <style jsx global>

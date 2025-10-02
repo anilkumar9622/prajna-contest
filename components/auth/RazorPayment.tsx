@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useImperativeHandle, useState } from 'react';
 import Swal from 'sweetalert2';
 import Script from 'next/script';
 import { useRouter } from 'next/navigation';
@@ -31,7 +31,7 @@ const RazorpayPayment: React.FC<RazorpayPaymentProps> = ({ amount, onPaymentSucc
             position: 'top',
             showConfirmButton: false,
             timer: 3000,
-            customClass: { container: 'toast' },
+            customClass: { container: 'toast', popup: 'small-toast', },
         });
         toast.fire({
             icon: type,
@@ -80,10 +80,10 @@ const RazorpayPayment: React.FC<RazorpayPaymentProps> = ({ amount, onPaymentSucc
             if (!response.ok) {
                 throw new Error("Payment verification failed");
             }
-            const res = await response.json(); 
+            const res = await response.json();
             if (res?.success) {
-                router.push("/success"); 
-            } 
+                router.push("/success");
+            }
             return res;
         } catch (error) {
             throw new Error('Payment verification failed');
@@ -137,6 +137,7 @@ const RazorpayPayment: React.FC<RazorpayPaymentProps> = ({ amount, onPaymentSucc
                             razorpay_signature: response.razorpay_signature,
                             user_id: userId,
                             amount: orderData.amount,
+                            email: orderData?.email
                         });
 
                         if (verificationResult.success) {
@@ -199,8 +200,15 @@ const RazorpayPayment: React.FC<RazorpayPaymentProps> = ({ amount, onPaymentSucc
             setIsLoading(false);
         }
     };
+     useImperativeHandle(ref, () => ({
+      handlePayment,
+    }));
+
+    const hasCalled = React.useRef(false);
+
     useEffect(() => {
-        if (amount > 0) {
+        if (amount > 0 && !hasCalled.current) {
+            hasCalled.current = true;
             handlePayment();
         }
     }, [amount]);
@@ -223,6 +231,23 @@ const RazorpayPayment: React.FC<RazorpayPaymentProps> = ({ amount, onPaymentSucc
                     buttonText || `Submit & Pay ₹${amount}`
                 )}
             </button> */}
+             <style jsx global>
+                {`
+    /* target title inside toast */
+    .small-toast{
+        padding: 10px 20px !important;
+    }
+.small-toast .swal2-title {
+  font-size: 16px; /* smaller text */
+  line-height: 1.2; /* optional, adjust spacing */
+}
+
+.small-toast .swal2-icon {
+  width: 12px;   /* optional: smaller icon */
+  height: 12px;
+}
+`}
+            </style>
         </>
     );
 };

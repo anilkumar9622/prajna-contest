@@ -39,7 +39,7 @@ export async function sendEmail({ to, subject, message }: SendEmailParams) {
 
         // Send the email
         const result = await transporter.sendMail({
-            from: `My App <${process.env.EMAIL_FROM}>`,
+            from: `Prajna Contest <${process.env.EMAIL_FROM}>`,
             to,
             subject,
             html:message

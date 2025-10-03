@@ -81,7 +81,7 @@ const Sidebar = () => {
         const selector = document.querySelector('.sidebar ul a[href="' + window.location.pathname + '"]');
         selector?.classList.add('active');
     };
-console.log({semidark, themeConfig});
+    console.log({ semidark, themeConfig });
     return (
         <div className={semidark ? 'dark' : ''}>
             <nav
@@ -90,7 +90,7 @@ console.log({semidark, themeConfig});
                 <div className="h-full bg-white dark:bg-black">
                     <div className="flex items-center justify-between px-4 py-3">
                         <Link href="/" className="main-logo flex shrink-0 items-center">
-                           { themeConfig.isDarkMode ? <img className="ml-[5px] w-8 flex-none" src="https://bace.org.in/assets/image/main-data/bace_logo-dv-min.png" alt="logo" />:<img className="ml-[5px] w-8 flex-none" src="/assets/images/logo.png" alt="logo" />}
+                            {themeConfig.isDarkMode ? <img className="ml-[5px] w-8 flex-none" src="https://bace.org.in/assets/image/main-data/bace_logo-dv-min.png" alt="logo" /> : <img className="ml-[5px] w-8 flex-none" src="/assets/images/logo.png" alt="logo" />}
                             <span className="align-middle text-2xl font-semibold ltr:ml-1.5 rtl:mr-1.5 dark:text-white-light lg:inline text-[#493f8f]">BACE</span>
                         </Link>
 
@@ -105,6 +105,7 @@ console.log({semidark, themeConfig});
                     <PerfectScrollbar className="relative h-[calc(100vh-80px)]">
                         <ul className="relative space-y-0.5 p-4 py-0 font-semibold">
                             <li className="menu nav-item">
+                                <Link href="/dashboard">
                                 <button type="button" className={`${currentMenu === 'dashboard' ? 'active' : ''} nav-link group w-full`} onClick={() => toggleMenu('dashboard')}>
                                     <div className="flex items-center">
                                         <IconMenuDashboard className="shrink-0 group-hover:!text-primary" />
@@ -114,8 +115,8 @@ console.log({semidark, themeConfig});
                                     {/* <div className={currentMenu !== 'dashboard' ? '-rotate-90 rtl:rotate-90' : ''}>
                                         <IconCaretDown />
                                     </div> */}
-                                </button>
-{/* 
+                                </button></Link>
+                                {/* 
                                 <AnimateHeight duration={300} height={currentMenu === 'dashboard' ? 'auto' : 0}>
                                     <ul className="sub-menu text-gray-500">
                                         <li>
@@ -141,11 +142,73 @@ console.log({semidark, themeConfig});
 
                             <li className="nav-item">
                                 <ul>
+                                    <li className="menu nav-item">
+                                        <button type="button" className={`${currentMenu === 'ourProgram' ? 'active' : ''} nav-link group w-full`} onClick={() => toggleMenu('ourProgram')}>
+                                            <div className="flex items-center">
+                                                <IconMenuInvoice className="shrink-0 group-hover:!text-primary" />
+                                                <span className="text-black ltr:pl-3 rtl:pr-3 dark:text-[#506690] dark:group-hover:text-white-dark">{t('Our Program')}</span>
+                                            </div>
+
+                                            <div className={currentMenu !== 'ourProgram' ? '-rotate-90 rtl:rotate-90' : ''}>
+                                                <IconCaretDown />
+                                            </div>
+                                        </button>
+
+                                        <AnimateHeight duration={300} height={currentMenu === 'ourProgram' ? 'auto' : 0}>
+                                            <ul className="sub-menu text-gray-500">
+                                                <li>
+                                                    <Link href="/apps/ourProgram/list">{t(`A Hero's Inner Journey`)}</Link>
+                                                </li>
+                                                <li>
+                                                    <Link href="/apps/ourProgram/preview">{t('Gita 365')}</Link>
+                                                </li>
+                                                <li>
+                                                    <Link href="/apps/ourProgram/add">{t('LMS')}</Link>
+                                                </li>
+                                                <li>
+                                                    <Link href="/dashboard/contest">{t('Prajna Contest')}</Link>
+                                                </li>
+                                            </ul>
+                                        </AnimateHeight>
+                                    </li>
+                                    <li className="menu nav-item">
+                                        <button type="button" className={`${currentMenu === 'educationCSU' ? 'active' : ''} nav-link group w-full`} onClick={() => toggleMenu('educationCSU')}>
+                                            <div className="flex items-center">
+                                                <IconMenuNotes className="shrink-0 group-hover:!text-primary" />
+                                                <span className="text-black ltr:pl-3 rtl:pr-3 dark:text-[#506690] dark:group-hover:text-white-dark">{t('Education CSU')}</span>
+                                            </div>
+
+                                            <div className={currentMenu !== 'educationCSU' ? '-rotate-90 rtl:rotate-90' : ''}>
+                                                <IconCaretDown />
+                                            </div>
+                                        </button>
+
+                                        <AnimateHeight duration={300} height={currentMenu === 'educationCSU' ? 'auto' : 0}>
+                                            <ul className="sub-menu text-gray-500">
+                                                <li>
+                                                    <Link href="/apps/ourProgram/list">{t(`Level Class`)}</Link>
+                                                </li>
+                                                <li>
+                                                    <Link href="/apps/ourProgram/preview">{t('Level Speaker')}</Link>
+                                                </li>
+                                                <li>
+                                                    <Link href="/apps/ourProgram/add">{t('E-Learning Material')}</Link>
+                                                </li>
+                                                <li>
+                                                    <Link href="/apps/ourProgram/edit">{t('Recorded Lecture')}</Link>
+                                                </li>
+                                                <li>
+                                                    <Link href="/apps/ourProgram/edit">{t('Prize & Award')}</Link>
+                                                </li>
+                                            </ul>
+                                        </AnimateHeight>
+                                    </li>
+
                                     <li className="nav-item">
                                         <Link href="/apps/chat" className="group">
                                             <div className="flex items-center">
                                                 <IconMenuChat className="shrink-0 group-hover:!text-primary" />
-                                                <span className="text-black ltr:pl-3 rtl:pr-3 dark:text-[#506690] dark:group-hover:text-white-dark">{t('chat')}</span>
+                                                <span className="text-black ltr:pl-3 rtl:pr-3 dark:text-[#506690] dark:group-hover:text-white-dark">{t('Servent Leader')}</span>
                                             </div>
                                         </Link>
                                     </li>
@@ -153,44 +216,95 @@ console.log({semidark, themeConfig});
                                         <Link href="/apps/mailbox" className="group">
                                             <div className="flex items-center">
                                                 <IconMenuMailbox className="shrink-0 group-hover:!text-primary" />
-                                                <span className="text-black ltr:pl-3 rtl:pr-3 dark:text-[#506690] dark:group-hover:text-white-dark">{t('mailbox')}</span>
+                                                <span className="text-black ltr:pl-3 rtl:pr-3 dark:text-[#506690] dark:group-hover:text-white-dark">{t('Our BACE ')}</span>
                                             </div>
                                         </Link>
                                     </li>
-                                    <li className="nav-item">
-                                        <Link href="/apps/todolist" className="group">
-                                            <div className="flex items-center">
-                                                <IconMenuTodo className="shrink-0 group-hover:!text-primary" />
-                                                <span className="text-black ltr:pl-3 rtl:pr-3 dark:text-[#506690] dark:group-hover:text-white-dark">{t('todo_list')}</span>
-                                            </div>
-                                        </Link>
-                                    </li>
+
                                     <li className="nav-item">
                                         <Link href="/apps/notes" className="group">
                                             <div className="flex items-center">
                                                 <IconMenuNotes className="shrink-0 group-hover:!text-primary" />
-                                                <span className="text-black ltr:pl-3 rtl:pr-3 dark:text-[#506690] dark:group-hover:text-white-dark">{t('notes')}</span>
+                                                <span className="text-black ltr:pl-3 rtl:pr-3 dark:text-[#506690] dark:group-hover:text-white-dark">{t('Service')}</span>
                                             </div>
                                         </Link>
+                                    </li>
+                                    <li className="menu nav-item">
+                                        <button type="button" className={`${currentMenu === 'cultural' ? 'active' : ''} nav-link group w-full`} onClick={() => toggleMenu('cultural')}>
+                                            <div className="flex items-center">
+                                                <IconMenuInvoice className="shrink-0 group-hover:!text-primary" />
+                                                <span className="text-black ltr:pl-3 rtl:pr-3 dark:text-[#506690] dark:group-hover:text-white-dark">{t('Cultural CSU Team')}</span>
+                                            </div>
+
+                                            <div className={currentMenu !== 'cultural' ? '-rotate-90 rtl:rotate-90' : ''}>
+                                                <IconCaretDown />
+                                            </div>
+                                        </button>
+
+                                        <AnimateHeight duration={300} height={currentMenu === 'cultural' ? 'auto' : 0}>
+                                            <ul className="sub-menu text-gray-500">
+                                                <li>
+                                                    <Link href="/apps/ourProgram/list">{t(`Drama`)}</Link>
+                                                </li>
+                                                <li>
+                                                    <Link href="/apps/ourProgram/preview">{t('Harmonium')}</Link>
+                                                </li>
+                                                <li>
+                                                    <Link href="/apps/ourProgram/add">{t('Kartal')}</Link>
+                                                </li>
+                                                <li>
+                                                    <Link href="/apps/ourProgram/edit">{t('Mridnaga')}</Link>
+                                                </li>
+                                            </ul>
+                                        </AnimateHeight>
+                                    </li>
+                                    <li className="menu nav-item">
+                                        <button type="button" className={`${currentMenu === 'yatra' ? 'active' : ''} nav-link group w-full`} onClick={() => toggleMenu('yatra')}>
+                                            <div className="flex items-center">
+                                                <IconMenuInvoice className="shrink-0 group-hover:!text-primary" />
+                                                <span className="text-black ltr:pl-3 rtl:pr-3 dark:text-[#506690] dark:group-hover:text-white-dark">{t('BACE CSU Yatra')}</span>
+                                            </div>
+
+                                            <div className={currentMenu !== 'yatra' ? '-rotate-90 rtl:rotate-90' : ''}>
+                                                <IconCaretDown />
+                                            </div>
+                                        </button>
+
+                                        <AnimateHeight duration={300} height={currentMenu === 'yatra' ? 'auto' : 0}>
+                                            <ul className="sub-menu text-gray-500">
+                                                <li>
+                                                    <Link href="/apps/ourProgram/list">{t(`Jaipur Yatra`)}</Link>
+                                                </li>
+                                                <li>
+                                                    <Link href="/apps/ourProgram/preview">{t('Kartik Vrindavan Yatra')}</Link>
+                                                </li>
+                                                <li>
+                                                    <Link href="/apps/ourProgram/add">{t('Jagannath Puri Yatra')}</Link>
+                                                </li>
+                                                <li>
+                                                    <Link href="/apps/ourProgram/edit">{t('Mayapur Yatra')}</Link>
+                                                </li>
+                                            </ul>
+                                        </AnimateHeight>
                                     </li>
                                     <li className="nav-item">
                                         <Link href="/apps/scrumboard" className="group">
                                             <div className="flex items-center">
                                                 <IconMenuScrumboard className="shrink-0 group-hover:!text-primary" />
-                                                <span className="text-black ltr:pl-3 rtl:pr-3 dark:text-[#506690] dark:group-hover:text-white-dark">{t('scrumboard')}</span>
+                                                <span className="text-black ltr:pl-3 rtl:pr-3 dark:text-[#506690] dark:group-hover:text-white-dark">{t('Temple Program')}</span>
                                             </div>
                                         </Link>
                                     </li>
-                                    <li className="nav-item">
+                                    {/* <li className="nav-item">
                                         <Link href="/apps/contacts" className="group">
                                             <div className="flex items-center">
                                                 <IconMenuContacts className="shrink-0 group-hover:!text-primary" />
                                                 <span className="text-black ltr:pl-3 rtl:pr-3 dark:text-[#506690] dark:group-hover:text-white-dark">{t('contacts')}</span>
                                             </div>
                                         </Link>
-                                    </li>
+                                    </li> */}
 
-                                    <li className="menu nav-item">
+                                    {/* <li className="menu nav-item">
                                         <button type="button" className={`${currentMenu === 'invoice' ? 'active' : ''} nav-link group w-full`} onClick={() => toggleMenu('invoice')}>
                                             <div className="flex items-center">
                                                 <IconMenuInvoice className="shrink-0 group-hover:!text-primary" />
@@ -218,20 +332,27 @@ console.log({semidark, themeConfig});
                                                 </li>
                                             </ul>
                                         </AnimateHeight>
+                                    </li> */}
+                                    <li className="nav-item">
+                                        <Link href="/apps/todolist" className="group">
+                                            <div className="flex items-center">
+                                                <IconMenuTodo className="shrink-0 group-hover:!text-primary" />
+                                                <span className="text-black ltr:pl-3 rtl:pr-3 dark:text-[#506690] dark:group-hover:text-white-dark">{t('Vaishnav Festival')}</span>
+                                            </div>
+                                        </Link>
                                     </li>
-
                                     <li className="nav-item">
                                         <Link href="/apps/calendar" className="group">
                                             <div className="flex items-center">
                                                 <IconMenuCalendar className="shrink-0 group-hover:!text-primary" />
-                                                <span className="text-black ltr:pl-3 rtl:pr-3 dark:text-[#506690] dark:group-hover:text-white-dark">{t('calendar')}</span>
+                                                <span className="text-black ltr:pl-3 rtl:pr-3 dark:text-[#506690] dark:group-hover:text-white-dark">{t('Vaishnav calendar')}</span>
                                             </div>
                                         </Link>
                                     </li>
                                 </ul>
                             </li>
 
-                            
+
 
                             <h2 className="-mx-4 mb-1 flex items-center bg-white-light/30 px-7 py-3 font-extrabold uppercase dark:bg-dark dark:bg-opacity-[0.08]">
                                 <IconMinus className="hidden h-5 w-4 flex-none" />
@@ -244,13 +365,13 @@ console.log({semidark, themeConfig});
                                         <Link href="/apps/chat" className="group">
                                             <div className="flex items-center">
                                                 <IconMenuChat className="shrink-0 group-hover:!text-primary" />
-                                                <span className="text-black ltr:pl-3 rtl:pr-3 dark:text-[#506690] dark:group-hover:text-white-dark">{t('Community')}</span>
+                                                <span className="text-black ltr:pl-3 rtl:pr-3 dark:text-[#506690] dark:group-hover:text-white-dark">{t('Vaishnav Community')}</span>
                                             </div>
                                         </Link>
                                     </li>
-                                    </ul>
+                                </ul>
 
-                                    </li>
+                            </li>
                         </ul>
                     </PerfectScrollbar>
                 </div>

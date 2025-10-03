@@ -9,9 +9,10 @@ import IconCaretDown from '@/components/icon/icon-caret-down';
 import IconFile from '../icon/icon-file';
 import IconPrinter from '../icon/icon-printer';
 import { FormValues } from '@/utils/schemaValidation';
+import SkeletonTable from '../skeleton/skeletonTable';
 
 
-const AdminDashboard = () => {
+const PrajnaContest = () => {
     const isRtl = useSelector((state: IRootState) => state.themeConfig.rtlClass) === 'rtl';
     const [rowData, setUsers] = useState<FormValues[]>([]);
     const [loading, setLoading] = useState(true);
@@ -255,7 +256,7 @@ const AdminDashboard = () => {
     // };
 
 
-    if (loading) return <div>Loading...</div>;
+    // if (loading) return <div>Loading...</div>;
 
 
     return (
@@ -328,7 +329,10 @@ const AdminDashboard = () => {
                 </div>
             </div>
             <div className="datatables">
-                <DataTable
+                {loading ? (
+                    <SkeletonTable rows={10} cols={10} />
+                ):
+                ( <DataTable
                     className="table-hover whitespace-nowrap"
                     records={recordsData}
                     columns={[
@@ -500,10 +504,10 @@ const AdminDashboard = () => {
                     onSortStatusChange={setSortStatus}
                     minHeight={200}
                     paginationText={({ from, to, totalRecords }) => `Showing  ${from} to ${to} of ${totalRecords} entries`}
-                />
+                /> )}
             </div>
         </div>
     );
 };
 
-export default AdminDashboard;
+export default PrajnaContest;

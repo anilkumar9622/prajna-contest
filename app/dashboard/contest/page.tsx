@@ -1,14 +1,13 @@
-import ComponentsDashboardFinance from '@/components/dashboard/components-dashboard-finance';
 import AdminDashboard from '@/components/component/PrajnaContest';
 import { Metadata } from 'next';
 import React from 'react';
 
 
 export const metadata: Metadata = {
-    title: 'Registered Users',
+    title: 'Prajna Contest: Registered Users',
 };
 
-const Sales = () => {
+const PrajnaContest = () => {
   
         return (
         <>
@@ -20,10 +19,9 @@ const Sales = () => {
                     https://www.npmjs.com/package/mantine-datatable
                 </a>
             </div> */}
-            {/* <AdminDashboard /> */}
-            <ComponentsDashboardFinance />
+            <AdminDashboard />
         </>
     );
 };
 
-export default Sales;
+export default PrajnaContest;

@@ -20,7 +20,7 @@
         "Tughlakabad Center",
         "Others",
     ];
-   export const instituteOptions = [
+   export const collegeOptions = [
         "AIIMS",
         "Akhilesh Das Gupta College",
         "Amity University Noida",
@@ -44,3 +44,31 @@
         "United Engg College",
         "VMMC - Safdarjung",
     ];
+
+    export const schoolOptions = [
+  "Delhi Public School (DPS), Greater Noida",
+  "Delhi Public School (DPS), Noida",
+  "Step by Step School, Noida",
+  "Lotus Valley International School, Noida",
+  "Ryan International School, Greater Noida",
+  "Apeejay School, Noida",
+  "Somerville School, Greater Noida",
+  "Genesis Global School, Noida",
+  "Shiv Nadar School, Noida",
+  "Kothari International School, Noida",
+  "Bal Bharati Public School, Noida",
+  "The Millennium School, Greater Noida",
+  "G.D. Goenka Public School, Greater Noida",
+  "Cambridge School, Noida",
+  "Jaypee Public School, Greater Noida",
+  "Bloom International School, Greater Noida",
+  "Billabong High International School, Noida",
+  "Sarvottam International School, Greater Noida",
+  "Vishwa Bharati Public School, Noida",
+  "Mayoor School, Noida",
+  "Assisi Convent School, Noida",
+  "Manthan School, Greater Noida",
+  "St. Joseph’s School, Greater Noida",
+  "Fr. Agnel School, Noida",
+  "JBM Global School, Noida",
+];

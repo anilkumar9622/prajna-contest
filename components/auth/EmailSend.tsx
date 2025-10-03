@@ -1,3 +1,4 @@
+import EmailTemplate from "@/lib/emailTemplate/template";
 import { useState } from "react";
 
 export default function SendEmailPage() {
@@ -10,9 +11,15 @@ export default function SendEmailPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        to: "anilchauhan.src@gmail.com",
-        subject: "Payment Successful",
-        message: "Thank you for your payment! Your transaction was successful.",
+        to: "anilkumar.202pr@gmail.com",
+        subject: "Registraion Successful: Prajna Contest 2026",
+        message: EmailTemplate({
+          name: "Anil Kumar",
+          amount: 199.99,
+          transactionId: "TXN123456",
+          supportEmail: "support@bace.org.in",
+          paymentMode:""
+        }),
       }),
     });
 

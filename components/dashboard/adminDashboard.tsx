@@ -10,28 +10,6 @@ import IconFile from '../icon/icon-file';
 import IconPrinter from '../icon/icon-printer';
 import { FormValues } from '@/utils/schemaValidation';
 
-const rowDataa = [
-    {
-        id: 1,
-        fullName: 'Caroline',
-        email: 'carolinejensen@zidant.com',
-        dob: '2004-05-28',
-        courier: {
-            street: '529 Scholes Street',
-            city: 'Temperanceville',
-            zipcode: 5235,
-            geo: {
-                lat: 23.806115,
-                lng: 164.677197,
-            },
-        },
-        phone: '+1 (821) 447-3782',
-        isActive: false,
-        age: 39,
-        company: 'POLARAX',
-        status: "success"
-    },
-]
 
 const AdminDashboard = () => {
     const isRtl = useSelector((state: IRootState) => state.themeConfig.rtlClass) === 'rtl';
@@ -107,11 +85,13 @@ const AdminDashboard = () => {
         { accessor: 'phone', title: 'Phone' },
         { accessor: 'instituteType', title: 'Institute Type' },
         { accessor: 'institute', title: 'Institute Name' },
+        { accessor: 'paymentStatus', title: 'Remarks' },
         { accessor: 'regBace', title: 'Registering Bace' },
         { accessor: 'dob', title: 'Birthdate' },
         { accessor: 'isCourier', title: 'Courier' },
         { accessor: 'courier', title: 'Courier Address' },
         { accessor: 'remarks', title: 'Remarks' },
+
     ];
 
     useEffect(() => {
@@ -423,7 +403,8 @@ const AdminDashboard = () => {
                             accessor: 'paymentStatus',
                             title: 'Payment Status',
                             sortable: true,
-                            render: ({ status }) => {
+                            render: ({ payment }) => {
+                                console.log({payment})
                                 // Map status to color
                                 const statusColors: Record<string, string> = {
                                     success: 'bg-success',
@@ -431,14 +412,22 @@ const AdminDashboard = () => {
                                     failed: 'bg-danger',
                                 };
 
-                                const bgColor = statusColors[status] || 'bg-secondary';
+                                const bgColor = statusColors[payment?.status] || 'bg-secondary';
 
                                 return (
                                     <span className={`badge ${bgColor}`}>
-                                        {'PENDING'}
+                                        {(payment?.status ?? "")?.toUpperCase()}
                                     </span>
                                 );
                             },
+                        },
+                        {
+                            accessor: 'paymentAmount',
+                            title: 'Payment Amount',
+                            sortable: true,
+                            hidden: hideCols.includes('paymentAmount'),
+                            render: ({ payment }) => <div>{payment?.amount}</div>,
+
                         },
                         {
                             accessor: "isCourier",

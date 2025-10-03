@@ -9,7 +9,7 @@ import { useSelector } from 'react-redux';
 import { IRootState } from '@/store';
 import IconPhoneCall from '../icon/icon-phone-call';
 import IconUsers from '../icon/icon-users';
-import { baceOptions, instituteOptions } from '@/lib/contant';
+import { baceOptions, collegeOptions, schoolOptions } from '@/lib/contant';
 import HookFormInputField from '../hooks/hookFormInput';
 import HookFormSelectField from '../hooks/hookFormSelect';
 import { useForm, SubmitHandler } from 'react-hook-form';
@@ -18,9 +18,10 @@ import IconCalendar from '../icon/icon-calendar';
 import { formSchema } from '@/utils/schemaValidation';
 import Swal from 'sweetalert2';
 import SendEmailPage from './EmailSend';
-import RazorpayPayment from './RazorPayment';
+import { startRazorpayPayment } from './RazorPayment';
 import SuccessModal from './SuccessModal';
 import { sendEmail } from '@/utils/email';
+import EmailTemplate from '@/lib/emailTemplate/template';
 
 const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", className = "", }: any) => {
     const [registrationType, setRegistrationType] = useState("");
@@ -92,18 +93,27 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
         e.preventDefault();
         router.push('/');
     };
-    const [institute, setInstitute] = useState("");
     const [isOther, setIsOther] = useState(false);
+    const [institute, setInstitute] = useState("");
 
     const handleChange = (value: any) => {
         if (value === "Other") {
             setIsOther(true);
-            setInstitute(""); // reset input
+            setInstitute("");
             reset({ ...watch(), institute: "" }); // reset form value
         } else {
             setIsOther(false);
             setInstitute(value);
+            reset({ ...watch(), institute: value }); // update selected
         }
+    };
+
+    // reset institute when type changes
+    const instituteTypeHandler = (value: any) => {
+        setSelectedType(value); // update type (school/college)
+        setIsOther(false);
+        setInstitute("");
+        reset({ ...watch(), institute: "" }); // reset form whenever type changes
     };
     const [isCourier, setIsCourier] = useState(false);
     console.log("isCourier", isCourier);
@@ -121,12 +131,29 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
         setServices({ ...services, [key]: !services[key] });
     };
 
-    const [registrationCharge, setRegistrationCharge] = useState<number>(0);
-    const instituteTypeHandler = (value: string | number) => {
-        if (value === "school" || value === "college") setRegistrationCharge(200);
-        // else if (value === "college") setRegistrationCharge(300);
-        else setRegistrationCharge(0); // default if needed
-    };
+    const [registrationCharge, setRegistrationCharge] = useState<number>(200);
+    // const instituteTypeHandler = (value: string | number) => {
+    //     if (value === "school" || value === "college") setRegistrationCharge(200);
+    //     // else if (value === "college") setRegistrationCharge(300);
+    //     else setRegistrationCharge(0); // default if needed
+    // };
+    const [selectedType, setSelectedType] = useState<"school" | "college" | "">("");
+
+    // Watch for changes in instituteType
+    const selectedInstituteType = watch("instituteType", selectedType);
+
+    // Decide options based on type
+    const dynamicOptions =
+        selectedInstituteType === "school"
+            ? schoolOptions
+            : selectedInstituteType === "college"
+                ? collegeOptions
+                : [];
+
+    // const instituteTypeHandler = (val: string | number) => {
+    //     setSelectedType(val as "school" | "college");
+    // };
+
 
     const languageCharge = services.language ? 100 : 0;
 
@@ -163,7 +190,6 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
     };
     const razorpayRef = useRef<any>(null);
     const [isLoading, setIsLoading] = useState(false);
-
     const onSubmit = async (formData: any) => {
         setIsLoading(true);
 
@@ -178,23 +204,47 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
             console.log({ data });
 
             if (res.status === 201) {
-                showMessage("Your details were saved successfully!", "success");
                 setUserData(data?.data);
 
-                if (isCourier && razorpayRef.current) {
-                    // trigger payment without button click
-                    console.log(">>>>>>>>>>>>>>")
-                    await razorpayRef.current.handlePayment();
+                // 🔹 Case 1: Courier with Online Payment
+                if (data?.data && isCourier) {
+                    await startRazorpayPayment({
+                        amount: total,
+                        userId: data?.data?.id,
+                        customerInfo: {
+                            name: data?.data?.name,
+                            email: data?.data?.email,
+                            contact: data?.data?.phone,
+                        },
+                        onSuccess: (paymentData) => {
+                            console.log("✅ Payment success:", paymentData);
+                            // Load script/component if you still want to
+                            setAutoLoadScript(true);
+                            router.push("/success");
+                        },
+                        onFailure: (err) => {
+                            console.error("❌ Payment failed:", err);
+                            showMessage("Payment failed, please try again.", "error");
+                        },
+                    });
                 }
-                if (data?.data && registrationType && registrationType === "offline") {
+
+                // 🔹 Case 2: Offline registration flow
+                if (data?.data && registrationType === "offline") {
                     await sendEmail({
                         to: data?.data?.email,
-                        subject: "Welcome!",
-                        message: "Thank you for registering with us 🎉",
+                        subject: "Registraion Successful: Prajna Contest 2026",
+                        message: `${EmailTemplate({
+                            name: data?.data?.name,
+                            amount: total,
+                            transactionId: "",
+                            paymentMode: "Offline",
+                            supportEmail: "support@bace.org.in",
+                        })}`,
                     });
+
+                    await showMessage("Registration successfully!", "success");
                     router.push("/success");
-                } else {
-                    setAutoLoadScript(true)
                 }
             } else if (res.status === 400) {
                 showMessage(data?.errors?.join(", ") || "Validation error", "error");
@@ -208,6 +258,58 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
             setIsLoading(false);
         }
     };
+
+    // const onSubmit = async (formData: any) => {
+    //     setIsLoading(true);
+
+    //     try {
+    //         const res = await fetch("/api/auth/register", {
+    //             method: "POST",
+    //             headers: { "Content-Type": "application/json" },
+    //             body: JSON.stringify(formData),
+    //         });
+
+    //         const data = await res.json();
+    //         console.log({ data });
+
+    //         if (res.status === 201) {
+    //             setUserData(data?.data);
+
+    //             if (isCourier && razorpayRef.current) {
+    //                 // trigger payment without button click
+    //                 console.log(">>>>>>>>>>>>>>")
+    //                 await razorpayRef.current.handlePayment();
+    //             }
+    //             if (data?.data && registrationType && registrationType === "offline") {
+    //                 await sendEmail({
+    //                     to: data?.data?.email,
+    //                     subject: "Registraion Successful: Prajna Contest 2026",
+    //                     message: `${EmailTemplate({
+    //                         name: data?.data?.name,
+    //                         amount: total,
+    //                         transactionId: "",
+    //                         paymentMode: "Offline",
+    //                         supportEmail: "support@bace.org.in"
+    //                     })}`,
+    //                 });
+    //                await showMessage("Registration successfully!", "success");
+
+    //                 router.push("/success");
+    //             } else {
+    //                 setAutoLoadScript(true)
+    //             }
+    //         } else if (res.status === 400) {
+    //             showMessage(data?.errors?.join(", ") || "Validation error", "error");
+    //         } else {
+    //             showMessage(data?.error || "Something went wrong!", "error");
+    //         }
+    //     } catch (err: any) {
+    //         console.error("❌ Register API failed", err);
+    //         showMessage(err.message || "Network error, please try again.", "error");
+    //     } finally {
+    //         setIsLoading(false);
+    //     }
+    // };
 
     const error = (errors: any) => {
         console.log("Form errors", errors);
@@ -313,7 +415,7 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
                             label="Institute Name"
                             placeholder="Select Institute Name"
                             options={[
-                                ...instituteOptions.map((inst) => ({
+                                ...dynamicOptions.map((inst) => ({
                                     label: inst,
                                     value: inst,
                                 })),
@@ -617,7 +719,7 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
                     )}
                 </button>
 
-                {isCourier && autoLoadScript &&
+                {/* {isCourier && autoLoadScript &&
                     <RazorpayPayment
                         ref={razorpayRef}
                         autoLoadScript={autoLoadScript}
@@ -632,9 +734,9 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = "Verified", clas
                         onPaymentFailure={(err) => console.log("❌ failed", err)}
                     />
 
-                }
+                } */}
 
-                <SendEmailPage />
+                {/* <SendEmailPage /> */}
             </form >
 
             <style jsx global>

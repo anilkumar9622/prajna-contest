@@ -1,3 +1,4 @@
+// /auth/api/register.tsx
 import { NextResponse } from "next/server";
 import { db } from "@/utils/firebaseAdmin";
 import { formSchema } from "@/utils/schemaValidation";

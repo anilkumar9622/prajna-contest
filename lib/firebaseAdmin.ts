@@ -35,7 +35,7 @@
 // export default admin;
 
 import admin from 'firebase-admin';
-
+   
 declare global {
   // Prevent multiple initializations
   var _firebaseAdminInitialized: boolean | undefined;

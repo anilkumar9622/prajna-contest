@@ -498,7 +498,7 @@ const ComponentsDashboardFinance = () => {
                             <IconEye className="shrink-0 ltr:mr-2 rtl:ml-2" />
                             Last Week 194
                         </div>
-                    </div>
+                    </div> 
 
                     {/* Bounce Rate */}
                     <div className="panel bg-gradient-to-r from-fuchsia-500 to-fuchsia-400">

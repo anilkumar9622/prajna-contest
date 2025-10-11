@@ -18,21 +18,12 @@ import RazorpayPayment from './RazorpayPayment';
 import SuccessModal from './SuccessModal';
 import CourierAddress from './CourierAddress';
 import RegistrationSummary from './RegistrationSummary';
-import { useParams } from 'next/navigation';
 
 const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = 'Verified', className = '' }: any) => {
+    // Add these new state variables
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [successData, setSuccessData] = useState<any>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isOther, setIsOther] = useState(false);
-    const [isCourier, setIsCourier] = useState(false);
-    const [courierCharge, setCourierCharge] = useState(0);
-    const [registrationType, setRegistrationType] = useState('');
-    const [services, setServices] = useState<any>({
-        language: false,
-        courier: false,
-    });
-    const [registrationCharge, setRegistrationCharge] = useState<number>(0);
 
     const {
         control,
@@ -53,10 +44,12 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = 'Verified', clas
             institute: '',
             regBace: '',
             registrationType: '',
+
             representative: {
                 name: '',
                 contact: '',
             },
+
             isCourier: false,
             courier: {
                 houseNo: '',
@@ -68,30 +61,39 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = 'Verified', clas
                 pincode: '',
                 contact: '',
             },
+
             remarks: '',
             agree: false,
             captcha: '',
         },
     });
-
-    // Get baceName from catch-all route param
-    const params = useParams();
-    const baceName = Array.isArray(params?.baceName) ? params.baceName[0] || '' : typeof params?.baceName === 'string' ? params.baceName : '';
-
-    useEffect(() => {
-        if (baceName) setValue('regBace', baceName);
-    }, [baceName, setValue]);
+    // institute is managed by react-hook-form; no local institute state needed
+    const [isOther, setIsOther] = useState(false);
 
     const handleChange = (value: any) => {
         if (value === 'Other') {
             setIsOther(true);
+            // clear form value when switching to free-text input
             reset({ ...watch(), institute: '' });
         } else {
             setIsOther(false);
             setValue('institute', value, { shouldValidate: true });
         }
     };
+    const [isCourier, setIsCourier] = useState(false);
+    const [courierCharge, setCourierCharge] = useState(0);
 
+    const [registrationType, setRegistrationType] = useState('');
+    const [services, setServices] = useState<any>({
+        language: false,
+        courier: false,
+    });
+
+    const handleServiceChange = (key: any) => {
+        setServices({ ...services, [key]: !services[key] });
+    };
+
+    const [registrationCharge, setRegistrationCharge] = useState<number>(0);
     const instituteTypeHandler = (value: string | number) => {
         if (value === 'school') setRegistrationCharge(200);
         else if (value === 'college') setRegistrationCharge(300);
@@ -99,10 +101,6 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = 'Verified', clas
     };
 
     const languageCharge = services.language ? 100 : 0;
-
-    const handleServiceChange = (key: any) => {
-        setServices({ ...services, [key]: !services[key] });
-    };
 
     useEffect(() => {
         setCourierCharge(registrationType === 'online' && isCourier ? 100 : 0);
@@ -126,9 +124,16 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = 'Verified', clas
     };
 
     const handlePaymentSuccess = async (paymentData: any) => {
+        console.log('Payment successful:', paymentData);
         setIsSubmitting(true);
+
         try {
             const formData = watch();
+
+            if (isCourier) {
+                console.log('Sending courier address to backend:', formData.courier);
+            }
+
             const payload = {
                 ...formData,
                 ...(isCourier && { courier: formData.courier }),
@@ -151,24 +156,31 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = 'Verified', clas
             const result = await response.json();
 
             if (response.ok && result.success) {
+                console.log('Registration saved:', result);
+
                 setSuccessData({
                     name: formData.name,
                     registrationId: result.registrationId,
                     paymentId: paymentData.razorpay_payment_id,
                     amount: total,
                 });
+
                 setShowSuccessModal(true);
-                reset();
+                reset(); // react-hook-form reset
+                // reset the visible recaptcha widget so it doesn't show "expired"
                 if (typeof window !== 'undefined' && (window as any).grecaptcha) {
                     try {
                         (window as any).grecaptcha.reset();
-                    } catch (e) {}
+                    } catch (e) {
+                        /* ignore */
+                    }
                 }
                 setIsCourier(false);
             } else {
                 showMessage(`Registration failed: ${result.error}`, 'error');
             }
         } catch (error) {
+            console.error('Registration error:', error);
             showMessage('Registration failed due to network error.', 'error');
         } finally {
             setIsSubmitting(false);
@@ -176,21 +188,22 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = 'Verified', clas
     };
 
     const handlePaymentFailure = (error: any) => {
+        console.log('Payment failed:', error);
         showMessage('Payment failed. Please try again.', 'error');
         setIsSubmitting(false);
     };
 
-    // Phone validation
     const phoneValue = String(watch('phone') || '');
     const phoneDigits = phoneValue.replace(/\D/g, '');
     const isPhoneValid = /^\d{10}$/.test(phoneDigits);
+
     const showPhoneFormatError = phoneValue && !isPhoneValid;
 
-    // Form validation
     const baseValid = Boolean(
         watch('name') && watch('email') && isPhoneValid && watch('instituteType') && watch('institute') && watch('regBace') && watch('registrationType') && watch('agree') && watch('captcha'),
     );
 
+    // If courier is selected for online registration, ensure courier address fields are present
     const courierHouse = watch('courier.houseNo');
     const courierCity = watch('courier.city');
     const courierState = watch('courier.state');
@@ -199,6 +212,7 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = 'Verified', clas
     const isCourierContactValid = /^\d{10}$/.test(courierContactValue);
 
     const courierFieldsValid = registrationType === 'online' && isCourier ? Boolean(courierHouse && courierCity && courierState && courierPincode && isCourierContactValid) : true;
+
     const isFormValid = baseValid && courierFieldsValid;
 
     return (
@@ -254,6 +268,7 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = 'Verified', clas
                         error={errors.instituteType?.message}
                     />
                 </div>
+
                 <div className="flex flex-col ">
                     {!isOther ? (
                         <HookFormSelectField
@@ -297,22 +312,18 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = 'Verified', clas
                     )}
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {baceName ? (
-                        <HookFormInputField name="regBace" control={control} label="Registering BACE" disabled required error={errors.regBace?.message} />
-                    ) : (
-                        <HookFormSelectField
-                            name="regBace"
-                            control={control}
-                            label="Registering BACE"
-                            placeholder="Select Registering BACE"
-                            options={baceOptions.map((bace) => ({
-                                label: bace,
-                                value: bace,
-                            }))}
-                            required
-                            error={errors.regBace?.message}
-                        />
-                    )}
+                    <HookFormSelectField
+                        name="regBace"
+                        control={control}
+                        label="Registering BACE"
+                        placeholder="Select Registering BACE"
+                        options={baceOptions.map((bace) => ({
+                            label: bace,
+                            value: bace,
+                        }))}
+                        required
+                        error={errors.regBace?.message}
+                    />
                     <HookFormSelectField
                         name="registrationType"
                         control={control}
@@ -327,10 +338,16 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = 'Verified', clas
                         callback={(e: any) => setRegistrationType(e)}
                     />
                 </div>
+
                 <div className="mt-4">
                     <label className="flex items-center justify-between gap-2 cursor-pointer mb-0 p-1">
                         <div className="flex items-center gap-3">
-                            <input type="checkbox" checked={services.language} onChange={() => handleServiceChange('language')} className="h-4 w-4 rounded border-gray-300 text-blue-600" />
+                            <input
+                                type="checkbox"
+                                checked={services.language}
+                                onChange={() => handleServiceChange('language')}
+                                className="h-4 w-4 rounded border-gray-300 text-blue-600"
+                            />
                             <div>
                                 <div className="text-sm text-gray-800 dark:text-gray-200">Bhagavad Gita (English)</div>
                                 <div className="text-xs text-gray-500">Includes printed copy (+ ₹100)</div>
@@ -339,6 +356,7 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = 'Verified', clas
                         <div className="text-sm font-medium text-gray-800 dark:text-gray-100">+ ₹100</div>
                     </label>
                 </div>
+
                 {registrationType === 'online' && (
                     <div className="mt-1 mb-5 space-y-3 border rounded-lg p-2 bg-blue-50 border-blue-600">
                         <label className="flex items-center justify-between gap-2 cursor-pointer mb-0 p-1">
@@ -354,6 +372,7 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = 'Verified', clas
                         </label>
                     </div>
                 )}
+
                 {registrationType === 'offline' && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 border p-4 rounded-lg bg-blue-50 border-blue-600">
                         <HookFormInputField name="representative.name" control={control} label="Representative Name" placeholder="Enter Name" required error={errors.representative?.name?.message} />
@@ -370,6 +389,7 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = 'Verified', clas
                 {registrationType === 'online' && isCourier && <CourierAddress control={control} errors={errors} />}
                 <HookFormInputField name="remarks" control={control} placeholder="Enter remarks" label="Remarks" />
                 <RegistrationSummary registrationCharge={registrationCharge} languageCharge={languageCharge} courierCharge={courierCharge} total={total} />
+
                 <div className="mt-4 space-y-3">
                     <label className="flex items-center gap-2 cursor-pointer">
                         <HookFormInputField name="agree" control={control} required type="checkbox" className="form-checkbox h-5 w-5 text-blue-600 border-gray-400 bg-whit" />
@@ -378,10 +398,13 @@ const ComponentsAuthRegisterForm = ({ onVerify, verifiedLabel = 'Verified', clas
                     {errors.agree?.message && <span className="text-red-500 text-sm mt-1">{errors.agree?.message}</span>}
                 </div>
                 <Captcha onChange={(token: any) => setValue('captcha', token, { shouldValidate: true })} onExpired={() => setValue('captcha', '', { shouldValidate: true })} />
+
                 <div className="hidden">
                     <HookFormInputField name="captcha" control={control} type="hidden" />
                 </div>
-                {errors.captcha?.message && <span className="text-red-500 text-sm inline lg:block md:block text-center leading-none">{errors.captcha?.message}</span>}
+
+                {errors.captcha?.message && <span className="text-red-500 text-sm inline lg:block md:block  text-center leading-none">{errors.captcha?.message}</span>}
+
                 <RazorpayPayment
                     amount={total}
                     onPaymentSuccess={handlePaymentSuccess}

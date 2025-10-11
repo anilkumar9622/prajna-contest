@@ -12,7 +12,7 @@ export default function SendEmailPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         to: "anilkumar.202pr@gmail.com",
-        subject: "Registraion Successful: Prajna Contest 2026",
+        subject: "Registraion Successful: Prajñā Contest 2026",
         message: EmailTemplate({
           name: "Anil Kumar",
           amount: 199.99,

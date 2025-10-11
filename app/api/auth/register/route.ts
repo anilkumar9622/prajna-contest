@@ -26,6 +26,7 @@ export async function POST(req: Request) {
     // 3️⃣ Save user
     const docRef = await db.collection("user").add({
       ...validatedData,
+      role: "student",
       createdAt: new Date(),
     });
     const savedDoc = await docRef.get();

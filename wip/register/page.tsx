@@ -55,7 +55,7 @@ export default function Register() {
     }
 
     useEffect(() => {
-        document.title = "PRAJÑĀ 2025: Register";
+        document.title = "PRAJÑĀ 2026: Register";
         if (session?.data?.isNewUser == false)
             router.push("/dashboard")
     }, [session])

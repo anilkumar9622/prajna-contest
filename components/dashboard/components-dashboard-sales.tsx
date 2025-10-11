@@ -418,7 +418,7 @@ const ComponentsDashboardSales = () => {
                     <div className="mb-6 grid gap-6 xl:grid-cols-3">
                         <div className="panel h-full xl:col-span-2">
                             <div className="mb-5 flex items-center justify-between dark:text-white-light">
-                                <h5 className="text-lg font-semibold">Prajna Registraion</h5>
+                                <h5 className="text-lg font-semibold">Prajñā Registraion</h5>
                                 <div className="dropdown">
                                     <Dropdown
                                         offset={[0, 1]}

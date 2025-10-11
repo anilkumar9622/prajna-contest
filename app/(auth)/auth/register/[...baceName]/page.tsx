@@ -1,21 +1,22 @@
 
+"use client"
+import Login from '@/components/auth/login';
 import ComponentsAuthRegisterForm from '@/components/auth/register';
 import IconFacebookCircle from '@/components/icon/icon-facebook-circle';
 import IconGoogle from '@/components/icon/icon-google';
 import IconInstagram from '@/components/icon/icon-instagram';
 import IconTwitter from '@/components/icon/icon-twitter';
-import { Metadata } from 'next';
 import Link from 'next/link';
-import React from 'react';
-
-
-export const metadata: Metadata = {
-    title: 'Register - PRAJÑĀ Contest - 2025',
-};
+import React, { useState } from 'react';
 
 const BoxedSignUp = () => {
+ const [loader, setLoader] = useState(false); 
+
     return (
-        <div>
+        <>
+        {loader && <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[999999]">
+      <div className="w-16 h-16 border-4 border-gray-200 border-t-[#4f46e5] rounded-full animate-spin"></div>
+    </div>}
             <header className="z-40 fixed top-0 left-0 w-full">
                 <div className="relative flex w-full items-center justify-between px-5 py-2 
                   bg-white/60 dark:bg-black/30 
@@ -43,10 +44,9 @@ const BoxedSignUp = () => {
                     </div>
                     <div className="ml-auto text-sm">
                         {" "}
-                    <Link href="/dashboard" className="underline text-primary font-bold">
-
-                        Admin Panel
-                    </Link>
+                    <button type="button" className="underline text-primary font-bold cursor-pointer">
+                       <Login isToggle={true}/>
+                    </button>
                         {/* <Login /> */}
                     </div>
                 </div>
@@ -70,7 +70,7 @@ const BoxedSignUp = () => {
                                 <p className="text-base font-bold leading-normal text-white-dark text-sm md:text-md lg:text-md">A Value Education Contest for Students</p>
                             </div>
 
-                            <ComponentsAuthRegisterForm />
+                            <ComponentsAuthRegisterForm setLoader={setLoader}/>
 
                             <div className="relative my-7 text-center md:mb-9">
                                 <span className="absolute inset-x-0 top-1/2 h-px w-full -translate-y-1/2 bg-white-light dark:bg-white-dark"></span>
@@ -120,7 +120,7 @@ const BoxedSignUp = () => {
                     </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 

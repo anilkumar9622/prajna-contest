@@ -15,7 +15,7 @@ export default function RegistrationSummary({
     return (
         <div className="mt-8 max-w-md mx-auto p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 border-l-4 border-l-blue-600 rounded-lg panel">
             <div className="mb-6 p-3 bg-green-50 dark:bg-green-900 border border-green-300 dark:border-green-700 rounded-lg text-sm">
-                The <span className="font-semibold">Prajna Contest Kit</span> will be provided for your preparation.
+                The <span className="font-semibold">Prajñā Contest Kit</span> will be provided for your preparation.
                 <br />
             </div>
             <div className="space-y-3 text-sm">

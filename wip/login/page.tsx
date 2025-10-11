@@ -6,7 +6,7 @@ import React, { useEffect } from 'react';
 export default function LoginPage(): React.JSX.Element {
 
   useEffect(() => {
-    document.title = "PRAJÑĀ 2025: Signin with Google"
+    document.title = "PRAJÑĀ 2026: Signin with Google"
     signIn('google')
   }, [])
 

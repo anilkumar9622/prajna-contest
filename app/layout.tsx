@@ -15,7 +15,7 @@ const nunito = Nunito({
     subsets: ['latin'],
     display: 'swap',
     variable: '--font-nunito',
-    
+
 });
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -24,7 +24,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <body className={`font-nunito ${nunito.variable}`}>
                 <ProviderComponent>{children}</ProviderComponent>
             </body>
-            
         </html>
     );
 }

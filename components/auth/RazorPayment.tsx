@@ -38,7 +38,8 @@ const createOrder = async (amount: number) => {
   if (!response.ok) throw new Error('Order creation failed');
   return await response.json();
 };
-
+// const [loader, setLoader] = useState<boolean>(false)
+// console.log({loader}, "razorpay")          
 const verifyPayment = async (paymentData: any) => {
   const response = await fetch('/api/payment', {
     method: 'POST',
@@ -55,12 +56,15 @@ export async function startRazorpayPayment({
   customerInfo,
   onSuccess,
   onFailure,
+  onLoader,
 }: {
   amount: number;
   userId: string;
   customerInfo?: { name?: string; email?: string; contact?: string };
   onSuccess?: (res: any) => void;
   onFailure?: (err: any) => void;
+  onLoader?: (err: any) => void;
+
 }) {
   try {
     if (amount <= 0) {
@@ -81,6 +85,8 @@ export async function startRazorpayPayment({
       description: 'Registration Payment',
       order_id: orderData.id,
       handler: async (response: any) => {
+            onLoader?.(true);
+
         try {
           const result = await verifyPayment({
             ...response,
@@ -91,15 +97,21 @@ export async function startRazorpayPayment({
           });
 
           if (result.success) {
-            showMessage("Payment successful!", "success");
+            // showMessage("Payment successful!", "success");
             onSuccess?.(result);
+            onLoader?.(false);
+
           } else {
-            showMessage("Payment verification failed!", "error");
+            // showMessage("Payment verification failed!", "error");
             onFailure?.(result);
+            onLoader?.(false);
+
           }
         } catch (err) {
-          showMessage("Payment verification failed!", "error");
+          // showMessage("Payment verification failed!", "error");
           onFailure?.(err);
+            onLoader?.(false);
+
         }
       },
       prefill: {

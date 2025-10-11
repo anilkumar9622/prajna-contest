@@ -16,7 +16,7 @@ export default function RootLayout({
     // <html lang="en">
     //   <head>
     //   <meta name="theme-color" content="#13012d" />
-    //   <title>PRAJÑĀ 2025</title>
+    //   <title>PRAJÑĀ 2026</title>
     //   </head>
     //   <body  className='m-auto'>
     //     <SessionProvider>

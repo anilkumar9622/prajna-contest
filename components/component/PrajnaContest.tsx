@@ -262,7 +262,7 @@ const PrajnaContest = () => {
     return (
         <div className="panel">
             <div className="mb-5 flex flex-col gap-5 md:flex-row md:items-center">
-                <h5 className="text-lg font-semibold dark:text-white-light">Prajna Registraion Data</h5>
+                <h5 className="text-lg font-semibold dark:text-white-light">Prajñā Registraion Data</h5>
                 <div className="flex items-center gap-5 ltr:ml-auto rtl:mr-auto">
                     <div className="flex flex-col gap-5 md:flex-row md:items-center">
                         <div className="dropdown">
@@ -331,180 +331,208 @@ const PrajnaContest = () => {
             <div className="datatables">
                 {loading ? (
                     <SkeletonTable rows={10} cols={10} />
-                ):
-                ( <DataTable
-                    className="table-hover whitespace-nowrap"
-                    records={recordsData}
-                    columns={[
-                        {
-                            accessor: 'id',
-                            title: 'ID',
-                            sortable: true,
-                            hidden: hideCols.includes('id'),
-                        },
-                        {
-                            accessor: 'name',
-                            title: 'Full Name',
-                            sortable: true,
-                            hidden: hideCols.includes('name'),
-                        },
-                        {
-                            accessor: 'gender',
-                            title: 'Gender',
-                            sortable: true,
-                            hidden: hideCols.includes('gender'),
-                        },
-                        {
-                            accessor: 'email',
-                            title: 'Email',
-                            sortable: true,
-                            hidden: hideCols.includes('email'),
-                        },
-                        {
-                            accessor: 'dob',
-                            title: 'D.O.B',
-                            sortable: true,
-                            hidden: hideCols.includes('dob'),
-                            render: ({ dob }) => <div>{formatDate(dob)}</div>,
-                        },
-                        {
-                            accessor: 'phone',
-                            title: 'Phone',
-                            sortable: true,
-                            hidden: hideCols.includes('phone'),
-                        },
-                        {
-                            accessor: "instituteType",
-                            title: "Institute Type",
-                            sortable: true,
-                            hidden: hideCols.includes("instituteType"),
-                            render: (record) => {
-                                const type = record.instituteType;
-
-                                // map type → color
-                                const typeColors: Record<string, string> = {
-                                    school: "badge-outline-danger",
-                                    college: "badge-outline-secondary",
-                                };
-
-                                const badgeColor = typeColors[type] || "badge-outline-dark"; // fallback
-
-                                return (
-                                    <span className={`badge ${badgeColor}`}>
-                                        {type}
-                                    </span>
-                                );
+                ) :
+                    (<DataTable
+                        className="table-hover whitespace-nowrap"
+                        records={recordsData.filter((record: any) => record.role !== "admin")}
+                        columns={[
+                            {
+                                accessor: 'id',
+                                title: 'ID',
+                                sortable: true,
+                                hidden: hideCols.includes('id'),
                             },
-                        },
-
-                        {
-                            accessor: 'institute',
-                            title: 'Institute Name',
-                            sortable: true,
-                            hidden: hideCols.includes('institute'),
-                        },
-                        {
-                            accessor: 'paymentStatus',
-                            title: 'Payment Status',
-                            sortable: true,
-                            render: ({ payment }) => {
-                                console.log({payment})
-                                // Map status to color
-                                const statusColors: Record<string, string> = {
-                                    success: 'bg-success',
-                                    pending: 'bg-warning',
-                                    failed: 'bg-danger',
-                                };
-
-                                const bgColor = statusColors[payment?.status] || 'bg-secondary';
-
-                                return (
-                                    <span className={`badge ${bgColor}`}>
-                                        {(payment?.status ?? "")?.toUpperCase()}
-                                    </span>
-                                );
+                            {
+                                accessor: 'name',
+                                title: 'Full Name',
+                                sortable: true,
+                                hidden: hideCols.includes('name'),
                             },
-                        },
-                        {
-                            accessor: 'paymentAmount',
-                            title: 'Payment Amount',
-                            sortable: true,
-                            hidden: hideCols.includes('paymentAmount'),
-                            render: ({ payment }) => <div>{payment?.amount}</div>,
-
-                        },
-                        {
-                            accessor: "isCourier",
-                            title: "Courier",
-                            sortable: true,
-                            hidden: hideCols.includes("isCourier"),
-                            render: (record) => {
-                                const type = record.isCourier; // boolean
-
-                                // map type → color
-                                const typeColors: Record<string, string> = {
-                                    true: "bg-primary",
-                                    false: "bg-danger",
-                                };
-
-                                const badgeColor = typeColors[String(type)] || "badge-outline-dark";
-
-                                return (
-                                    <span className={`badge ${badgeColor}`}>
-                                        {type ? "Yes" : "No"}
-                                    </span>
-                                );
+                            {
+                                accessor: 'gender',
+                                title: 'Gender',
+                                sortable: true,
+                                hidden: hideCols.includes('gender'),
                             },
-                        },
+                            {
+                                accessor: 'email',
+                                title: 'Email',
+                                sortable: true,
+                                hidden: hideCols.includes('email'),
+                            },
+                            {
+                                accessor: 'dob',
+                                title: 'D.O.B',
+                                sortable: true,
+                                hidden: hideCols.includes('dob'),
+                                render: ({ dob }) => <div>{formatDate(dob)}</div>,
+                            },
+                            {
+                                accessor: 'phone',
+                                title: 'Phone',
+                                sortable: true,
+                                hidden: hideCols.includes('phone'),
+                            },
+                            {
+                                accessor: "instituteType",
+                                title: "Institute Type",
+                                sortable: true,
+                                hidden: hideCols.includes("instituteType"),
+                                render: (record) => {
+                                    const type = record.instituteType;
 
-                        {
-                            accessor: 'courier',
-                            title: 'Courier Address',
-                            sortable: true,
-                            hidden: hideCols.includes('courier'),
-                            render: ({ courier }) => <div>{courier?.houseNo ? `${courier.houseNo}, ${courier.line1}, ${courier.city}, ${courier.state} - ${courier.pincode}` : 'N/A'}</div>,
-                        },
-                        {
-                            accessor: 'regBace',
-                            title: 'Bace',
-                            sortable: true,
-                            hidden: hideCols.includes('regBace'),
-                        },
-                        {
-                            accessor: 'representative',
-                            title: 'Representative',
-                            sortable: true,
-                            hidden: hideCols.includes('representative'),
-                            render: ({ representative }) => <div>{representative?.name ? `${representative.name}, ${representative.contact}` : 'N/A'}</div>,
-                        },
-                        {
-                            accessor: 'remarks',
-                            title: 'Remarks',
-                            sortable: true,
-                            hidden: hideCols.includes('remarks'),
-                            // render: ({ dob }) => <div>{formatDate(dob)}</div>,
-                        },
-                        {
-                            accessor: 'isActive',
-                            title: 'Active',
-                            sortable: true,
-                            hidden: hideCols.includes('isActive'),
-                            render: ({ isActive }: any) => <div className={`${isActive ? 'text-success' : 'text-danger'} capitalize`}>{isActive?.toString()}</div>,
-                        },
+                                    // map type → color
+                                    const typeColors: Record<string, string> = {
+                                        school: "badge-outline-danger",
+                                        college: "badge-outline-secondary",
+                                    };
 
-                    ]}
-                    highlightOnHover
-                    totalRecords={initialRecords.length}
-                    recordsPerPage={pageSize}
-                    page={page}
-                    onPageChange={(p) => setPage(p)}
-                    recordsPerPageOptions={PAGE_SIZES}
-                    onRecordsPerPageChange={setPageSize}
-                    sortStatus={sortStatus}
-                    onSortStatusChange={setSortStatus}
-                    minHeight={200}
-                    paginationText={({ from, to, totalRecords }) => `Showing  ${from} to ${to} of ${totalRecords} entries`}
-                /> )}
+                                    const badgeColor = typeColors[type] || "badge-outline-dark"; // fallback
+
+                                    return (
+                                        <span className={`badge ${badgeColor}`}>
+                                            {type}
+                                        </span>
+                                    );
+                                },
+                            },
+
+                            {
+                                accessor: 'institute',
+                                title: 'Institute Name',
+                                sortable: true,
+                                hidden: hideCols.includes('institute'),
+                            },
+                            {
+                                accessor: 'registrationPaymentMode',
+                                title: 'Payment Mode',
+                                sortable: true,
+                                hidden: hideCols.includes('registrationPaymentMode'),
+                                render: (record) => {
+                                    const type = record.registrationPaymentMode;
+
+                                    // map type → color
+                                    const typeColors: Record<string, string> = {
+                                        online: "badge-outline-primary",
+                                        offline: "badge-outline-secondary",
+                                    };
+
+                                    // const badgeColor = typeColors[type] || "badge-outline-dark"; // fallback
+                                    const statusColors: Record<string, string> = {
+                                        online: 'bg-primary',
+                                        offline: 'bg-secondary',
+                                    };
+                                    const bgColor = statusColors[type] || 'bg-secondary';
+
+                                    return (
+                                        <span className={`badge ${bgColor}`}>
+                                            {(type ?? "")?.toUpperCase()}
+                                        </span>
+                                    );
+                                },
+                            },
+                            {
+                                accessor: 'paymentStatus',
+                                title: 'Payment Status',
+                                sortable: true,
+                                render: ({ payment, registrationPaymentMode }) => {
+                                    console.log({ payment })
+                                    // Map status to color
+                                    const statusColors: Record<string, string> = {
+                                        success: 'bg-success',
+                                        pending: 'bg-warning',
+                                        failed: 'bg-danger',
+                                    };
+
+                                    const bgColor = registrationPaymentMode == "offline" ? statusColors["success"]:statusColors[payment?.status] || 'bg-secondary';
+
+                                    return (
+                                        <span className={`badge ${bgColor}`}>
+                                            {(registrationPaymentMode == "offline" ? "SUCCESS": payment?.status ?? "")?.toUpperCase()}
+                                        </span>
+                                    );
+                                },
+                            },
+                            {
+                                accessor: 'paymentAmount',
+                                title: 'Payment Amount',
+                                sortable: true,
+                                hidden: hideCols.includes('paymentAmount'),
+                                render: ({ payment, totalRegistrationAmount }) => <div>{(payment?.amount || totalRegistrationAmount)}</div>,
+
+                            },
+                            {
+                                accessor: "isCourier",
+                                title: "Courier",
+                                sortable: true,
+                                hidden: hideCols.includes("isCourier"),
+                                render: (record) => {
+                                    const type = record.isCourier; // boolean
+
+                                    // map type → color
+                                    const typeColors: Record<string, string> = {
+                                        true: "bg-primary",
+                                        false: "bg-danger",
+                                    };
+
+                                    const badgeColor = typeColors[String(type)] || "badge-outline-dark";
+
+                                    return (
+                                        <span className={`badge ${badgeColor}`}>
+                                            {type ? "Yes" : "No"}
+                                        </span>
+                                    );
+                                },
+                            },
+
+                            {
+                                accessor: 'courier',
+                                title: 'Courier Address',
+                                sortable: true,
+                                hidden: hideCols.includes('courier'),
+                                render: ({ courier }) => <div>{courier?.houseNo ? `${courier.houseNo}, ${courier.line1}, ${courier.city}, ${courier.state} - ${courier.pincode}` : 'N/A'}</div>,
+                            },
+                            {
+                                accessor: 'regBace',
+                                title: 'Bace',
+                                sortable: true,
+                                hidden: hideCols.includes('regBace'),
+                            },
+                            {
+                                accessor: 'volunteer',
+                                title: 'Volunteer',
+                                sortable: true,
+                                hidden: hideCols.includes('volunteer'),
+                                render: ({ volunteer }) => <div>{volunteer?.name ? `${volunteer.name}, ${volunteer.contact}` : 'N/A'}</div>,
+                            },
+                            {
+                                accessor: 'remarks',
+                                title: 'Remarks',
+                                sortable: true,
+                                hidden: hideCols.includes('remarks'),
+                                // render: ({ dob }) => <div>{formatDate(dob)}</div>,
+                            },
+                            {
+                                accessor: 'isActive',
+                                title: 'Active',
+                                sortable: true,
+                                hidden: hideCols.includes('isActive'),
+                                render: ({ isActive }: any) => <div className={`${isActive ? 'text-success' : 'text-danger'} capitalize`}>{isActive?.toString()}</div>,
+                            },
+
+                        ]}
+                        highlightOnHover
+                        totalRecords={initialRecords.length}
+                        recordsPerPage={pageSize}
+                        page={page}
+                        onPageChange={(p) => setPage(p)}
+                        recordsPerPageOptions={PAGE_SIZES}
+                        onRecordsPerPageChange={setPageSize}
+                        sortStatus={sortStatus}
+                        onSortStatusChange={setSortStatus}
+                        minHeight={200}
+                        paginationText={({ from, to, totalRecords }) => `Showing  ${from} to ${to} of ${totalRecords} entries`}
+                    />)}
             </div>
         </div>
     );

@@ -166,7 +166,7 @@ const Sidebar = () => {
                                                     <Link href="/apps/ourProgram/add">{t('LMS')}</Link>
                                                 </li>
                                                 <li>
-                                                    <Link href="/dashboard/contest">{t('Prajna Contest')}</Link>
+                                                    <Link href="/dashboard/contest">{t('Prajñā Contest')}</Link>
                                                 </li>
                                             </ul>
                                         </AnimateHeight>

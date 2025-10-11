@@ -50,7 +50,7 @@ export default function Handler() {
                         const url = window.URL.createObjectURL(blob);
                         const link = document.createElement('a');
                         link.href = url;
-                        const safeName = 'PRAJÑĀ 2025'
+                        const safeName = 'PRAJÑĀ 2026'
                         link.download = `${safeName} Participation Certificate.png`;
                         document.body.appendChild(link);
                         link.click();

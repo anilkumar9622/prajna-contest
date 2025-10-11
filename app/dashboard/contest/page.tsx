@@ -4,7 +4,7 @@ import React from 'react';
 
 
 export const metadata: Metadata = {
-    title: 'Prajna Contest: Registered Users',
+    title: 'Prajñā Contest: Registered Users',
 };
 
 const PrajnaContest = () => {

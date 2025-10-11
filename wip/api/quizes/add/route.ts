@@ -7,7 +7,7 @@ async function handler() {
 
         const quizID = generateRandomID("QZ");
 
-        const name = "Prajna Contest"
+        const name = "Prajñā Contest"
         const startDate = new Date(Date.UTC(2024, 11, 21, 16, 30)); // Year, Month (0-based), Day, Hour, Minute
         const endDate = new Date(Date.UTC(2024, 11, 21, 17, 40)); // UTC time
         const questionBankID = "QB-1734778296424-i5k2m6";

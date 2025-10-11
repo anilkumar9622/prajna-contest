@@ -54,7 +54,7 @@ export default function QuizForm() {
     return (
         <div className="p-8 bg-gray-50 rounded-lg shadow-lg max-w-4xl mx-auto">
             <h2 className="text-3xl font-semibold text-gray-800 text-center mb-6 noselect">
-                Prajñā 2025 Quiz: Page {currentStep + 1} of {totalSteps}
+                Prajñā 2026 Quiz: Page {currentStep + 1} of {totalSteps}
             </h2>
             <div className="space-y-6">
                 {currentQuestions.map((question: QuizQuestion, index) => (

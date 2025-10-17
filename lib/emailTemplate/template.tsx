@@ -8,16 +8,17 @@ interface EmailTemplateProps {
   supportEmail?: string;
   logoUrl?: string; 
   themeColor?: string; 
-  paymentMode: string
+  paymentMode: string;
 }
+
 const EmailTemplate: React.FC<EmailTemplateProps> = ({
   name = "User",
   transactionId,
   amount,
   supportEmail = "support@example.com",
-  logoUrl = "https://bace.org.in/assets/image/main-data/bace_logo-dv-min.png",
+  logoUrl = "https://bace.org.in/assets/image/main-data/bace_logo-min.png",
   themeColor = "#493f8f",
-  paymentMode= ""
+  paymentMode = ""
 }: EmailTemplateProps): string => {
   return `
     <!DOCTYPE html>
@@ -41,6 +42,7 @@ const EmailTemplate: React.FC<EmailTemplateProps> = ({
           box-shadow: 0 2px 6px rgba(0,0,0,0.1);
           padding: 30px;
           text-align: center;
+          margin: 20px auto;
         }
         .logo {
           max-width: 120px;
@@ -48,11 +50,14 @@ const EmailTemplate: React.FC<EmailTemplateProps> = ({
         }
         h1 {
           color: ${themeColor};
+          font-size: 22px;
+          margin-bottom: 16px;
         }
         p {
           line-height: 1.6;
-          font-size: 16px;
-          color: white;
+          font-size: 15px;
+          color: #333; /* ✅ fixed for standard theme visibility */
+          margin: 8px 0;
         }
         .button {
           display: inline-block;
@@ -70,19 +75,21 @@ const EmailTemplate: React.FC<EmailTemplateProps> = ({
           color: #777;
           text-align: center;
         }
+        .query-txt {
+          font-size: 13px;
+        } 
       </style>
     </head>
     <body>
       <div class="container">
         <img src="${logoUrl}" alt="Logo" class="logo" />
         <h1>Thank You, ${name}!</h1>
-          <p style="font-size:13px;">Your payment of <strong>&#8377; ${amount}</strong> was successful.</p>
-       
-         <p style="font-size:13px;">Payment Mode: <strong>${paymentMode}</strong></p>
-
+        <p>Your payment of <strong>&#8377; ${amount}</strong> was successful.</p>
+        <p>Payment Mode: <strong>${paymentMode}</strong></p>
         <p>Your registration is now complete.</p>
-        <p>If you have any questions or need assistance, feel free to reach out to our support team.</p>
+       
         <a href="mailto:${supportEmail}" class="button">Contact Support</a>
+         <p class="query-txt">If you have any questions or need assistance, feel free to reach out to our support team.</p>
         <div class="footer">
           &copy; ${new Date().getFullYear()} BACE. All rights reserved.
         </div>

@@ -1,4 +1,29 @@
- export const baceOptions = [
+ 
+// Mapping of shortcodes to full BACE names
+export const baceShortcodeMapping: { [key: string]: string } = {
+    "ayd": "Ayodhya Dham",
+    "bdd": "Badrinath Dham",
+    "brj": "Braj Dham",
+    "ekd": "Ekachakra Dham",
+    "gmb": "Gambhira",
+    "grd": "Gaur Dham",
+    "gvd": "Goverdhan Dham",
+    "gnd": "Govind Dham",
+    "gur": "Gurugram",
+    "ind": "Indraprastha Dham",
+    "jpd": "Jagannath Puri Dham",
+    "mmg": "Mamgachchi",
+    "mtd": "Mathura Dham",
+    "myd": "Mayapur Dham",
+    "ndd": "Nadiya Dham",
+    "spd": "Shantipur Dham",
+    "sva": "Srivas Angan",
+    "tmp": "Temple",
+    "tgc": "Tughlakabad Center",
+    "oth": "Others",
+};
+
+export const baceOptions = [
         "Ayodhya Dham",
         "Badrinath Dham",
         "Braj Dham",
@@ -7,7 +32,7 @@
         "Gaur Dham",
         "Goverdhan Dham",
         "Govind Dham",
-        "Gurugram BACE",
+        "Gurugram",
         "Indraprastha Dham",
         "Jagannath Puri Dham",
         "Mamgachchi",

@@ -18,9 +18,10 @@ import Swal from 'sweetalert2';
 import { startRazorpayPayment } from './RazorPayment';
 import { sendEmail } from '@/utils/email';
 import EmailTemplate from '@/lib/emailTemplate/template';
+import { baceShortcodeMapping } from '@/lib/contant';
 
 const ComponentsAuthRegisterForm = ({ setLoader }: any) => {
-    const [registrationType, setRegistrationType] = useState("");
+    const [registrationType, setRegistrationType] = useState('');
     const {
         control,
         handleSubmit,
@@ -31,43 +32,42 @@ const ComponentsAuthRegisterForm = ({ setLoader }: any) => {
     } = useForm({
         resolver: yupResolver(formSchema),
         defaultValues: {
-            name: "",
-            gender: "",
-            dob: "",
-            email: "",
-            phone: "",
-            instituteType: "",
-            institute: "",
-            regBace: "",
-            registrationPaymentMode: "",
+            name: '',
+            gender: '',
+            dob: '',
+            email: '',
+            phone: '',
+            instituteType: '',
+            institute: '',
+            regBace: '',
+            registrationPaymentMode: '',
             volunteer: {
-                name: "",
-                contact: "",
+                name: '',
+                contact: '',
             },
             isCourier: false,
             courier: {
-                houseNo: "",
-                line1: "",
-                line2: "",
-                city: "",
-                district: "",
-                state: "",
-                pincode: "",
-                contact: "",
+                houseNo: '',
+                line1: '',
+                line2: '',
+                city: '',
+                district: '',
+                state: '',
+                pincode: '',
+                contact: '',
             },
             payment: {
-                status: "pending",
-                paymentId: "",
-                orderId: "",
+                status: 'pending',
+                paymentId: '',
+                orderId: '',
                 updatedAt: new Date(),
-                amount: ""
+                amount: '',
             },
-            totalRegistrationAmount: "",
-            remarks: "",
+            totalRegistrationAmount: '',
+            remarks: '',
             agree: false,
-            captcha: "",
-        }
-
+            captcha: '',
+        },
     });
     const params = useParams();
     const router = useRouter();
@@ -76,26 +76,40 @@ const ComponentsAuthRegisterForm = ({ setLoader }: any) => {
     const [courierCharge, setCourierCharge] = useState(0);
     const [registrationCharge, setRegistrationCharge] = useState<number>(200);
     const [isLoading, setIsLoading] = useState(false);
-    const [selectedType, setSelectedType] = useState<"school" | "college" | "">("");
-    const selectedInstituteType = watch("instituteType", selectedType);
+    const [selectedType, setSelectedType] = useState<'school' | 'college' | ''>('');
+    const selectedInstituteType = watch('instituteType', selectedType);
     const [services, setServices] = useState<any>({
         language: false,
         courier: false,
     });
 
     const baceName = Array.isArray(params?.baceName) ? params.baceName[0] || '' : typeof params?.baceName === 'string' ? params.baceName : '';
+    console.log(baceName);
+
+    // Map shortcode to full BACE name
+    const getFullBaceName = (shortcode: string): string => {
+        if (!shortcode) return '';
+
+        // Remove leading slash if present (e.g., "/ayd" -> "ayd")
+        const cleanShortcode = shortcode.startsWith('/') ? shortcode.slice(1) : shortcode;
+
+        // Return mapped full name or original value if not found in mapping
+        return baceShortcodeMapping[cleanShortcode] || shortcode;
+    };
+
+    const fullBaceName = getFullBaceName(baceName);
 
     useEffect(() => {
-        if (baceName) {
-            localStorage.setItem("regBace", baceName);
-            setValue("regBace", baceName);
+        if (fullBaceName) {
+            localStorage.setItem('regBace', fullBaceName);
+            setValue('regBace', fullBaceName);
         }
-    }, [baceName, setValue]);
+    }, [fullBaceName, setValue]);
 
     const handleChange = (value: any) => {
-        if (value === "Other") {
+        if (value === 'Other') {
             setIsOther(true);
-            reset({ ...watch(), institute: "" });
+            reset({ ...watch(), institute: '' });
         } else {
             setIsOther(false);
             reset({ ...watch(), institute: value });
@@ -105,19 +119,14 @@ const ComponentsAuthRegisterForm = ({ setLoader }: any) => {
     const instituteTypeHandler = (value: any) => {
         setSelectedType(value);
         setIsOther(false);
-        reset({ ...watch(), institute: "" });
+        reset({ ...watch(), institute: '' });
     };
 
     const handleServiceChange = (key: any) => {
         setServices({ ...services, [key]: !services[key] });
     };
 
-    const dynamicOptions =
-        selectedInstituteType === "school"
-            ? schoolOptions
-            : selectedInstituteType === "college"
-                ? collegeOptions
-                : [];
+    const dynamicOptions = selectedInstituteType === 'school' ? schoolOptions : selectedInstituteType === 'college' ? collegeOptions : [];
 
     const languageCharge = services.language ? 100 : 0;
     useEffect(() => {
@@ -125,16 +134,15 @@ const ComponentsAuthRegisterForm = ({ setLoader }: any) => {
     }, [isCourier]);
 
     const total = registrationCharge + languageCharge + courierCharge;
-    setValue("totalRegistrationAmount", String(total))
-   
+    setValue('totalRegistrationAmount', String(total));
+
     const showMessage = (msg = '', type = 'success') => {
         const toast: any = Swal.mixin({
             toast: true,
             position: 'top',
             showConfirmButton: false,
             timer: 3000,
-            customClass: { container: 'toast', popup: 'small-toast', },
-
+            customClass: { container: 'toast', popup: 'small-toast' },
         });
         toast.fire({
             icon: type,
@@ -145,14 +153,14 @@ const ComponentsAuthRegisterForm = ({ setLoader }: any) => {
     const onSubmit = async (formData: any) => {
         setIsLoading(true);
         try {
-            const res = await fetch("/api/auth/register", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
+            const res = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData),
             });
             const data = await res.json();
             if (res.status === 201) {
-                if (data?.data && registrationType === "online") {
+                if (data?.data && registrationType === 'online') {
                     await startRazorpayPayment({
                         amount: total,
                         userId: data?.data?.id,
@@ -162,65 +170,57 @@ const ComponentsAuthRegisterForm = ({ setLoader }: any) => {
                             contact: data?.data?.phone,
                         },
                         onLoader: (res) => {
-                            console.log({ res }, "loader");
-                            setLoader(res)
+                            console.log({ res }, 'loader');
+                            setLoader(res);
                         },
                         onSuccess: (paymentData) => {
-                            console.log("✅ Payment success:", paymentData);
-                            router.push("/success");
+                            console.log('✅ Payment success:', paymentData);
+                            router.push('/success');
                         },
                         onFailure: (err) => {
-                            console.error("❌ Payment failed:", err);
-                            showMessage("Payment failed, please try again.", "error");
+                            console.error('❌ Payment failed:', err);
+                            showMessage('Payment failed, please try again.', 'error');
                         },
                     });
                 }
-                if (data?.data && registrationType === "offline") {
+                if (data?.data && registrationType === 'offline') {
                     await sendEmail({
                         to: data?.data?.email,
-                        subject: "Registraion Successful: Prajñā Contest 2026",
+                        subject: 'Registraion Successful: Prajñā Contest 2026',
                         message: `${EmailTemplate({
                             name: data?.data?.name,
                             amount: total,
-                            transactionId: "",
-                            paymentMode: "Offline",
-                            supportEmail: "support@bace.org.in",
+                            transactionId: '',
+                            paymentMode: 'Offline',
+                            supportEmail: 'support@bace.org.in',
                         })}`,
                     });
-                    await showMessage("Registration successfully!", "success");
-                    router.push("/success");
+                    await showMessage('Registration successfully!', 'success');
+                    router.push('/success');
                 }
             } else if (res.status === 400) {
-                showMessage(data?.errors?.join(", ") || "Validation error", "error");
+                showMessage(data?.errors?.join(', ') || 'Validation error', 'error');
             } else {
-                showMessage(data?.error || "Something went wrong!", "error");
+                showMessage(data?.error || 'Something went wrong!', 'error');
             }
         } catch (err: any) {
-            console.error("❌ Register API failed", err);
-            showMessage(err.message || "Network error, please try again.", "error");
+            console.error('❌ Register API failed', err);
+            showMessage(err.message || 'Network error, please try again.', 'error');
         } finally {
             setIsLoading(false);
         }
     };
 
     const error = (errors: any) => {
-        console.log("Form errors", errors);
-        showMessage(errors?.message || "Form validation failed!", "error");
+        console.log('Form errors', errors);
+        showMessage(errors?.message || 'Form validation failed!', 'error');
     };
 
     return (
         <>
             <form className="space-y-5 dark:text-white" onSubmit={handleSubmit(onSubmit, error)}>
                 <div className="relative text-white-dark">
-                    <HookFormInputField
-                        name="name"
-                        control={control}
-                        placeholder="Enter Full Name"
-                        label="Full Name"
-                        required
-                        error={errors.name?.message}
-                        icon={<IconUser fill={true} />}
-                    />
+                    <HookFormInputField name="name" control={control} placeholder="Enter Full Name" label="Full Name" required error={errors.name?.message} icon={<IconUser fill={true} />} />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="relative text-white-dark">
@@ -230,36 +230,18 @@ const ComponentsAuthRegisterForm = ({ setLoader }: any) => {
                             label="Gender"
                             placeholder="Select Gender"
                             options={[
-                                { value: "male", label: "Male" },
-                                { value: "female", label: "Female" },
+                                { value: 'male', label: 'Male' },
+                                { value: 'female', label: 'Female' },
                             ]}
                             required
                             error={errors.gender?.message}
                             icon={<IconUsers />}
                         />
                     </div>
-                    <HookFormInputField
-                        name="dob"
-                        control={control}
-                        placeholder="Enter Date of Birth"
-                        label="Date of Birth"
-                        required
-                        type="date"
-                        error={errors.dob?.message}
-                        icon={<IconCalendar />}
-                    />
+                    <HookFormInputField name="dob" control={control} placeholder="Enter Date of Birth" label="Date of Birth" required type="date" error={errors.dob?.message} icon={<IconCalendar />} />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <HookFormInputField
-                        name="email"
-                        control={control}
-                        placeholder="Enter Email"
-                        label="Email"
-                        required
-                        type="email"
-                        error={errors.email?.message}
-                        icon={<IconMail fill={true} />}
-                    />
+                    <HookFormInputField name="email" control={control} placeholder="Enter Email" label="Email" required type="email" error={errors.email?.message} icon={<IconMail fill={true} />} />
                     <HookFormInputField
                         name="phone"
                         control={control}
@@ -279,8 +261,8 @@ const ComponentsAuthRegisterForm = ({ setLoader }: any) => {
                         callback={instituteTypeHandler}
                         placeholder="Select Institute Type"
                         options={[
-                            { value: "school", label: "School (Class 9 and above only)" },
-                            { value: "college", label: "College" },
+                            { value: 'school', label: 'School (Class 9 and above only)' },
+                            { value: 'college', label: 'College' },
                         ]}
                         required
                         error={errors.instituteType?.message}
@@ -298,25 +280,18 @@ const ComponentsAuthRegisterForm = ({ setLoader }: any) => {
                                     label: inst,
                                     value: inst,
                                 })),
-                                { label: "Other", value: "Other" },
+                                { label: 'Other', value: 'Other' },
                             ]}
                             required
                             callback={handleChange}
                             error={errors.institute?.message}
                         />
                     ) : (
-                        <HookFormInputField
-                            name="institute"
-                            control={control}
-                            placeholder="Enter Institute Name"
-                            label="Institute Name"
-                            required
-                            error={errors.institute?.message}
-                        />
+                        <HookFormInputField name="institute" control={control} placeholder="Enter Institute Name" label="Institute Name" required error={errors.institute?.message} />
                     )}
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {baceName ? (
+                    {fullBaceName ? (
                         <HookFormInputField name="regBace" control={control} label="Registering BACE" disabled required error={errors.regBace?.message} />
                     ) : (
                         <HookFormSelectField
@@ -330,31 +305,25 @@ const ComponentsAuthRegisterForm = ({ setLoader }: any) => {
                             }))}
                             required
                             error={errors.regBace?.message}
-                        />)}
+                        />
+                    )}
                     <HookFormSelectField
                         name="registrationPaymentMode"
                         control={control}
                         label="Registration Payment Mode"
-                        placeholder='-- Select Payment Mode --'
+                        placeholder="-- Select Payment Mode --"
                         options={[
-                            { value: "online", label: "Online" },
-                            { value: "offline", label: "Offline" },
+                            { value: 'online', label: 'Online' },
+                            { value: 'offline', label: 'Offline' },
                         ]}
                         required
                         error={errors.registrationPaymentMode?.message}
                         callback={(e: any) => setRegistrationType(e)}
                     />
                 </div>
-                {registrationType === "offline" && (
+                {registrationType === 'offline' && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 border p-4 rounded-lg bg-blue-50 border-blue-600">
-                        <HookFormInputField
-                            name="volunteer.name"
-                            control={control}
-                            label="Volunteer Name"
-                            placeholder="Enter Volunteer Name"
-                            required
-                            error={errors.volunteer?.name?.message}
-                        />
+                        <HookFormInputField name="volunteer.name" control={control} label="Volunteer Name" placeholder="Enter Volunteer Name" required error={errors.volunteer?.name?.message} />
                         <HookFormInputField
                             name="volunteer.contact"
                             control={control}
@@ -362,11 +331,10 @@ const ComponentsAuthRegisterForm = ({ setLoader }: any) => {
                             placeholder="Enter Volunteer Contact"
                             required
                             error={errors.volunteer?.contact?.message}
-
                         />
                     </div>
                 )}
-                {registrationType === "online" && (
+                {registrationType === 'online' && (
                     <div className="mt-1 mb-5 space-y-3 border rounded-lg p-2 bg-blue-50 border-blue-600">
                         <label className="flex items-center justify-between gap-2 cursor-pointer mb-0 p-1">
                             <span className="text-sm text-gray-700 dark:text-gray-200">
@@ -381,8 +349,9 @@ const ComponentsAuthRegisterForm = ({ setLoader }: any) => {
                                 className="form-checkbox h-5 w-5 text-blue-600 border-gray-400 bg-whit"
                             />
                         </label>
-                    </div>)}
-                {registrationType === "online" && isCourier && (
+                    </div>
+                )}
+                {registrationType === 'online' && isCourier && (
                     <div className="mt-4 border p-4 rounded-lg space-y-3 bg-blue-50 border-blue-600">
                         <div className="flex items-center gap-2">
                             <h3 className="font-semibold">Courier Address</h3>
@@ -390,101 +359,50 @@ const ComponentsAuthRegisterForm = ({ setLoader }: any) => {
                                 ( *This service is only available for <span className="font-semibold">Delhi & NCR </span>)
                             </p>
                         </div>
-                        <HookFormInputField
-                            name="courier.houseNo"
-                            control={control}
-                            placeholder="House No., Building Name *"
-                            required
-                            error={errors.courier?.houseNo?.message}
-                        />
-                        <HookFormInputField
-                            name="courier.line1"
-                            control={control}
-                            placeholder="Address Line 1"
-                        />
-                        <HookFormInputField
-                            name="courier.line2"
-                            control={control}
-                            placeholder="Address Line 2"
-                        />
+                        <HookFormInputField name="courier.houseNo" control={control} placeholder="House No., Building Name *" required error={errors.courier?.houseNo?.message} />
+                        <HookFormInputField name="courier.line1" control={control} placeholder="Address Line 1" />
+                        <HookFormInputField name="courier.line2" control={control} placeholder="Address Line 2" />
                         <div className="grid grid-cols-2 gap-4">
-                            <HookFormInputField
-                                name="courier.city"
-                                control={control}
-                                placeholder="City*"
-                                required
-                                error={errors.courier?.city?.message}
-                            />
-                            <HookFormInputField
-                                name="courier.district"
-                                control={control}
-                                placeholder="District"
-                            />
+                            <HookFormInputField name="courier.city" control={control} placeholder="City*" required error={errors.courier?.city?.message} />
+                            <HookFormInputField name="courier.district" control={control} placeholder="District" />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
-                            <HookFormInputField
-                                name="courier.state"
-                                control={control}
-                                placeholder="State*"
-                                required
-                                error={errors.courier?.state?.message}
-                            />
-                            <HookFormInputField
-                                name="courier.pincode"
-                                control={control}
-                                placeholder="Pincode*"
-                                required
-                                error={errors.courier?.pincode?.message}
-                            />
+                            <HookFormInputField name="courier.state" control={control} placeholder="State*" required error={errors.courier?.state?.message} />
+                            <HookFormInputField name="courier.pincode" control={control} placeholder="Pincode*" required error={errors.courier?.pincode?.message} />
                         </div>
-                        <HookFormInputField
-                            name="courier.contact"
-                            control={control}
-                            placeholder="Contact Number*"
-                            required
-                            error={errors.courier?.contact?.message}
-                        />
+                        <HookFormInputField name="courier.contact" control={control} placeholder="Contact Number*" required error={errors.courier?.contact?.message} />
                     </div>
                 )}
-                <HookFormInputField
-                    name="remarks"
-                    control={control}
-                    placeholder="Enter remarks"
-                    label="Remarks"
-                />
-                <div className="mt-8 max-w-md mx-auto  px-4 lg:p-6
+                <HookFormInputField name="remarks" control={control} placeholder="Enter remarks" label="Remarks" />
+                <div
+                    className="mt-8 max-w-md mx-auto  px-4 lg:p-6
                        bg-white dark:bg-gray-800 
                        border border-gray-200 dark:border-gray-700 
                        border-l-4 border-l-blue-600 
-                        rounded-lg panel">
+                        rounded-lg panel"
+                >
                     <div className="mb-6 p-3 bg-green-50 dark:bg-green-900 border border-green-900 dark:border-green-700 rounded-lg text-sm">
                         The <span className="font-bold">Prajñā Contest Kit</span>
-                        (Bhagavad Gita As it Is <span className="font-bold">Hindi</span>, bilingual Brochure cum Question Bank)  will be provided for your preparation.
+                        (Bhagavad Gita As it Is <span className="font-bold">Hindi</span>, bilingual Brochure cum Question Bank) will be provided for your preparation.
                         <br />
                     </div>
-                    <span className="text-gray-700 dark:text-gray-300">
-                        You may also opt language preference
-                    </span>
+                    <span className="text-gray-700 dark:text-gray-300">You may also opt language preference</span>
                     <div className="mt-1 mb-5 space-y-3 border rounded-lg p-2 bg-[#fff9ed] border-red-900">
                         <label className="flex items-center justify-between gap-2 cursor-pointer mb-0 p-1">
-                            <span className="text-sm text-gray-700 dark:text-gray-200">
-                                English Bhagavad Gita (+ ₹100)
-                            </span>
+                            <span className="text-sm text-gray-700 dark:text-gray-200">English Bhagavad Gita (+ ₹100)</span>
                             <input
                                 type="checkbox"
                                 className="form-checkbox h-5 w-5 text-blue-600 border-gray-400 bg-white"
                                 checked={services.language}
-                                onChange={() => handleServiceChange("language")}
+                                onChange={() => handleServiceChange('language')}
                             />
                         </label>
                     </div>
-                    <div className='border-b border-l-2 mb-2'></div>
+                    <div className="border-b border-l-2 mb-2"></div>
                     <div className="space-y-3 text-sm">
                         <div className="flex justify-between">
                             <span className="text-gray-600 dark:text-gray-300">Registration Charge</span>
-                            <span className="font-medium text-gray-800 dark:text-gray-100">
-                                ₹{registrationCharge}
-                            </span>
+                            <span className="font-medium text-gray-800 dark:text-gray-100">₹{registrationCharge}</span>
                         </div>
                         {services.language && (
                             <div className="flex justify-between">
@@ -506,12 +424,7 @@ const ComponentsAuthRegisterForm = ({ setLoader }: any) => {
                             </div>
                         )}
                         <div className="border-t border-gray-300 dark:border-gray-600 my-3"></div>
-                        <HookFormInputField
-                            name="totalRegistrationAmount"
-                            control={control}
-                            type="hidden"
-                            defaultValue={total}
-                        />
+                        <HookFormInputField name="totalRegistrationAmount" control={control} type="hidden" defaultValue={total} />
                         <div className="flex justify-between text-base font-bold">
                             <span className="text-gray-900 dark:text-white">Total Amount</span>
                             <span className="text-blue-600 dark:text-blue-400">₹{total}</span>
@@ -520,67 +433,49 @@ const ComponentsAuthRegisterForm = ({ setLoader }: any) => {
                 </div>
                 <div className="mt-4 space-y-3">
                     <label className="flex items-center gap-2 cursor-pointer">
-                        <HookFormInputField
-                            name="agree"
-                            control={control}
-
-                            required
-                            type="checkbox"
-                            className="form-checkbox h-5 w-5 text-blue-600 border-gray-400 bg-whit"
-                        />
-                        <span className="text-sm text-gray-700 dark:text-gray-200">
-                            Details must be as per your Institute ID Card
-                            otherwise your registration is invalid
-                        </span>
+                        <HookFormInputField name="agree" control={control} required type="checkbox" className="form-checkbox h-5 w-5 text-blue-600 border-gray-400 bg-whit" />
+                        <span className="text-sm text-gray-700 dark:text-gray-200">Details must be as per your Institute ID Card otherwise your registration is invalid</span>
                     </label>
-                    {errors.agree?.message && <span className='text-red-500 text-sm mt-1'>{errors.agree?.message}</span>}
+                    {errors.agree?.message && <span className="text-red-500 text-sm mt-1">{errors.agree?.message}</span>}
                 </div>
-                <Captcha
-                    onChange={(token: any) => setValue("captcha", token, { shouldValidate: true })}
-                    onExpired={() => setValue("captcha", "", { shouldValidate: true })}
-                />
+                <Captcha onChange={(token: any) => setValue('captcha', token, { shouldValidate: true })} onExpired={() => setValue('captcha', '', { shouldValidate: true })} />
                 <div className="hidden">
-                    <HookFormInputField
-                        name="captcha"
-                        control={control}
-                        type="hidden"
-                    />
+                    <HookFormInputField name="captcha" control={control} type="hidden" />
                 </div>
-                {errors.captcha?.message &&
-                    <span className="text-red-500 text-sm inline lg:block md:block  text-center leading-none">{errors.captcha?.message}</span>
-                }
+                {errors.captcha?.message && <span className="text-red-500 text-sm inline lg:block md:block  text-center leading-none">{errors.captcha?.message}</span>}
                 <button
                     type="submit"
                     disabled={isLoading}
-                    className={`btn btn-gradient p-3 !mt-6 w-full border-0 uppercase shadow-[0_10px_20px_-10px_rgba(67,97,238,0.44)] ${isLoading ? "opacity-70 cursor-not-allowed" : ""
-                        }`}
+                    className={`btn btn-gradient p-3 !mt-6 w-full border-0 uppercase shadow-[0_10px_20px_-10px_rgba(67,97,238,0.44)] ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
                 >
                     {isLoading ? (
                         <div className="flex items-center justify-center">
                             <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-2"></div>
                             Loading...
                         </div>
+                    ) : registrationType !== 'online' ? (
+                        'Register'
                     ) : (
-                        registrationType !== "online" ? "Register" : "Register & Pay"
+                        'Register & Pay'
                     )}
                 </button>
-            </form >
+            </form>
             <style jsx global>
                 {`
-    /* target title inside toast */
-    .small-toast{
-        padding: 10px 20px !important;
-    }
-   .small-toast .swal2-title {
-       font-size: 16px; /* smaller text */
-       line-height: 1.2; /* optional, adjust spacing */
-    }
+                    /* target title inside toast */
+                    .small-toast {
+                        padding: 10px 20px !important;
+                    }
+                    .small-toast .swal2-title {
+                        font-size: 16px; /* smaller text */
+                        line-height: 1.2; /* optional, adjust spacing */
+                    }
 
-   .small-toast .swal2-icon {
-       width: 12px;   /* optional: smaller icon */
-       height: 12px;
-    }
-`}
+                    .small-toast .swal2-icon {
+                        width: 12px; /* optional: smaller icon */
+                        height: 12px;
+                    }
+                `}
             </style>
         </>
     );

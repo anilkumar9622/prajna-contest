@@ -1,22 +1,23 @@
 "use client"
 import IconChecks from '@/components/icon/icon-checks'
 import Link from 'next/link'
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react'
 
 export default function page() {
-  const params = useParams();
-  const baceName = Array.isArray(params?.baceName) ? params.baceName[0] || '' : typeof params?.baceName === 'string' ? params.baceName : '';
-  const [value, setValue] = useState<string>("")
-  useEffect(() => {
-    if (baceName) {
-      localStorage.setItem("regBace", baceName);
-      setValue(baceName);
-    } else {
-      const savedBace = localStorage.getItem("regBace");
-      if (savedBace) setValue(savedBace);
-    }
-  }, [baceName, setValue]);
+  // const params = useParams();
+  // const baceName = Array.isArray(params?.baceName) ? params.baceName[0] || '' : typeof params?.baceName === 'string' ? params.baceName : '';
+  // const [value, setValue] = useState<string>("")
+  // useEffect(() => {
+  //   if (baceName) {
+  //     localStorage.setItem("regBace", baceName);
+  //     setValue(baceName);
+  //   } else {
+  //     const savedBace = localStorage.getItem("regBace");
+  //     if (savedBace) setValue(savedBace);
+  //   }
+  // }, [baceName, setValue]);
+   const router = useRouter();
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[#fafafa]">
       <div className="bg-[#ddd]" />
@@ -27,13 +28,13 @@ export default function page() {
           </div>
           <h2 className="mt-4 text-xl font-extrabold text-gray-600 tracking-wide">Registration Successful</h2>
           <p className="text-sm text-gray-600 mt-2">Thank you! for you Registration.</p>
-          <Link href={`/auth/register/${value}`}>
-            <button
+          {/* <Link href={`/auth/register/${value}`}> */}
+            <button onClick={() => router.back()}
               className="btn btn-gradient p-3 !mt-6 w-full border-0 shadow-[0_10px_20px_-10px_rgba(67,97,238,0.44)]"
             >
-              Go to Register Page
+              Go to Back
             </button>
-          </Link>
+          {/* </Link> */}
           <p className="text-sm text-gray-600 mt-4">If you have any questions or need assistance contact: +91 9716887036</p>
         </div>
       </div>

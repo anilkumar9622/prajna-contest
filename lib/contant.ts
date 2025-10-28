@@ -21,9 +21,11 @@ export const baceShortcodeMapping: { [key: string]: string } = {
     "tmp": "Temple",
     "tgc": "Tughlakabad Center",
     "oth": "Others",
+    "cmn": "Common",
 };
 
 export const baceOptions = [
+        "Not Sure",
         "Ayodhya Dham",
         "Badrinath Dham",
         "Braj Dham",
@@ -44,6 +46,7 @@ export const baceOptions = [
         "Temple",
         "Tughlakabad Center",
         "Others",
+        "Common"
     ];
    export const collegeOptions = [
         "AIIMS",

@@ -10,7 +10,8 @@ import IconFile from '../icon/icon-file';
 import IconPrinter from '../icon/icon-printer';
 import { FormValues } from '@/utils/schemaValidation';
 import SkeletonTable from '../skeleton/skeletonTable';
-
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
 const PrajnaContest = () => {
     const isRtl = useSelector((state: IRootState) => state.themeConfig.rtlClass) === 'rtl';
@@ -41,7 +42,7 @@ const PrajnaContest = () => {
         direction: 'asc',
     });
 
-    const [hideCols, setHideCols] = useState<any>(['age', 'dob', 'isActive']);
+    const [hideCols, setHideCols] = useState<any>([]);
     useEffect(() => {
         const fetchUsers = async () => {
             try {
@@ -80,17 +81,22 @@ const PrajnaContest = () => {
 
     const cols = [
         { accessor: 'id', title: 'ID' },
+        { accessor: 'createdAt', title: 'Created At' },
         { accessor: 'name', title: 'Full Name' },
         { accessor: 'gender', title: 'Gender' },
         { accessor: 'email', title: 'Email' },
         { accessor: 'phone', title: 'Phone' },
         { accessor: 'instituteType', title: 'Institute Type' },
         { accessor: 'institute', title: 'Institute Name' },
-        { accessor: 'paymentStatus', title: 'Remarks' },
-        { accessor: 'regBace', title: 'Registering Bace' },
-        { accessor: 'dob', title: 'Birthdate' },
-        { accessor: 'isCourier', title: 'Courier' },
+        { accessor: 'registrationPaymentMode', title: 'Payment Mode' },
+        { accessor: 'paymentStatus', title: 'Payment Status' },
+        { accessor: 'paymentId', title: 'Payment Id' },
+        { accessor: 'paymentAmount', title: 'Payment Amount' },
+        { accessor: 'isCourier', title: 'Is Courier' },
         { accessor: 'courier', title: 'Courier Address' },
+        { accessor: 'regBace', title: 'Registering Bace' },
+        { accessor: 'volunteer', title: 'Volunteer' },
+        { accessor: 'dob', title: 'Birthdate' },
         { accessor: 'remarks', title: 'Remarks' },
 
     ];
@@ -109,16 +115,33 @@ const PrajnaContest = () => {
         setInitialRecords(() => {
             return rowData.filter((item) => {
                 return (
-                    item.id.toString().includes(search.toLowerCase()) ||
-                    item.name.toLowerCase().includes(search.toLowerCase()) ||
-                    item.gender.toLowerCase().includes(search.toLowerCase()) ||
-                    item.email.toLowerCase().includes(search.toLowerCase()) ||
-                    item.instituteType.toLowerCase().includes(search.toLowerCase()) ||
-                    item.dob.toLowerCase().includes(search.toLowerCase()) ||
-                    item.institute.toLowerCase().includes(search.toLowerCase()) ||
-                    item.regBace.toLowerCase().includes(search.toLowerCase()) ||
-                    item.phone.toLowerCase().includes(search.toLowerCase())
+                    [
+                        item?.id,
+                        // item?.createdAt?._seconds
+                        //   ? new Date(item.createdAt._seconds * 1000).toLocaleString('en-GB')
+                        //   : item?.createdAt,
+                        item?.name,
+                        item?.gender,
+                        item?.email,
+                        item?.instituteType,
+                        item?.dob,
+                        item?.institute,
+                        item?.regBace,
+                        item?.phone,
+                        item?.registrationPaymentMode,
+                        item?.totalRegistrationAmount,
+                        item?.payment?.status,
+                        item?.payment?.amount,
+                        item?.payment?.paymentId,
+                        item?.volunteer?.name,
+                        item?.volunteer?.contact,
+                    ]
+                        .filter(Boolean) // remove null/undefined
+                        .some((val) =>
+                            String(val)?.toLowerCase()?.includes(search?.toLowerCase())
+                        )
                 );
+
             });
         });
     }, [search]);
@@ -129,109 +152,156 @@ const PrajnaContest = () => {
         setPage(1);
     }, [sortStatus]);
 
-    const col = ['id', 'name', 'gneder', 'email', 'phone', 'dob', 'instituteType', 'institute', 'regBace', "remarks", 'isCourier', 'courier'];
+    const col = ['id', 'createdAt', 'name', 'gender', 'email', 'phone', 'dob', 'instituteType', 'institute', 'registrationPaymentMode', 'paymentStatus', 'paymentId', 'paymentAmount', 'isCourier', 'courier', 'regBace', 'volunteer', 'remarks'];
 
-    const exportTable = (type: any) => {
-        let columns: any = col;
-        let records = rowData;
-        let filename = 'table';
 
-        let newVariable: any;
-        newVariable = window.navigator;
+    const exportTable = (type: string) => {
+        const filename = 'Prajna_Registration_Data'
+        const columns: string[] = col;
+        const records: any[] = rowData;
+        const capitalize = (str: string) => str.charAt(0).toUpperCase() + str.slice(1);
 
+        const getNestedValue = (obj: any, path: string) =>
+            path.split('.').reduce((acc, part) => acc && acc[part], obj) ?? '';
+
+        const formatDate = (seconds: number) => {
+            const date = new Date(seconds * 1000);
+            const options: Intl.DateTimeFormatOptions = {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false,
+                timeZone: 'Asia/Kolkata',
+            };
+            return date.toLocaleString('en-GB', options).replace(',', ', at');
+        };
+
+        // ✅ Centralized data extraction for all export types
+        const getValue = (item: any, col: string) => {
+            switch (col) {
+                case 'paymentStatus':
+                    return getNestedValue(item, 'payment.status');
+                case 'paymentAmount':
+                    return getNestedValue(item, 'payment.amount') || item.totalRegistrationAmount || '';
+                case 'paymentId':
+                    return getNestedValue(item, 'payment.paymentId');
+                case 'courier': {
+                    const c = item.courier || {};
+                    return c.houseNo
+                        ? `${c.houseNo}, ${c.line1 || ''}, ${c.city || ''}, ${c.state || ''} - ${c.pincode || ''}`.replace(/\s+,/g, ',').trim()
+                        : 'N/A';
+                }
+                case 'volunteer': {
+                    const v = item.volunteer || {};
+                    return v.name ? `${v.name}, ${v.contact || ''}`.trim() : 'N/A';
+                }
+                case 'createdAt': {
+                    const ts = getNestedValue(item, 'createdAt._seconds');
+                    return ts ? formatDate(ts) : '';
+                }
+                default:
+                    const val = item[col];
+                    if (typeof val === 'object' && val !== null) return JSON.stringify(val);
+                    return val ?? '';
+            }
+        };
+
+        // ✅ Build table data (header + rows)
+        const data = [
+            columns.map((d) => capitalize(d)),
+            ...records.map((item) => columns.map((col) => getValue(item, col))),
+        ];
+
+        // ===============================
+        // ---- CSV Export ----
+        // ===============================
         if (type === 'csv') {
-            let coldelimiter = ';';
-            let linedelimiter = '\n';
-            let result = columns
-                .map((d: any) => {
-                    return capitalize(d);
-                })
-                .join(coldelimiter);
-            result += linedelimiter;
-            records.map((item: any) => {
-                columns.map((d: any, index: any) => {
-                    if (index > 0) {
-                        result += coldelimiter;
-                    }
-                    let val = item[d] ? item[d] : '';
-                    result += val;
-                });
-                result += linedelimiter;
-            });
+            const result = data
+                .map((row) => row.map((val) => `"${String(val).replace(/"/g, '""')}"`).join(','))
+                .join('\n');
+            const blob = new Blob(['\uFEFF' + result], { type: 'text/csv;charset=utf-8;' });
+            saveAs(blob, `${filename}.csv`);
+        }
 
-            if (result == null) return;
-            if (!result.match(/^data:text\/csv/i) && !newVariable.msSaveOrOpenBlob) {
-                var data = 'data:application/csv;charset=utf-8,' + encodeURIComponent(result);
-                var link = document.createElement('a');
-                link.setAttribute('href', data);
-                link.setAttribute('download', filename + '.csv');
-                link.click();
-            } else {
-                var blob = new Blob([result]);
-                if (newVariable.msSaveOrOpenBlob) {
-                    newVariable.msSaveBlob(blob, filename + '.csv');
-                }
-            }
-        } else if (type === 'print') {
-            var rowhtml = '<p>' + filename + '</p>';
-            rowhtml +=
-                '<table style="width: 100%; " cellpadding="0" cellcpacing="0"><thead><tr style="color: #515365; background: #eff5ff; -webkit-print-color-adjust: exact; print-color-adjust: exact; "> ';
-            columns.map((d: any) => {
-                rowhtml += '<th>' + capitalize(d) + '</th>';
+        // ===============================
+        // ---- XLSX Export ----
+        // ===============================
+        else if (type === 'xlsx') {
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            const colWidths = columns.map((colKey) => {
+                const maxCellLength = records.reduce((max, record) => {
+                    const val = String(getValue(record, colKey) || '');
+                    return Math.max(max, val.length);
+                }, colKey.length);
+                return { wch: Math.min(Math.max(maxCellLength + 2, 10), 50) };
             });
-            rowhtml += '</tr></thead>';
-            rowhtml += '<tbody>';
-            records.map((item: any) => {
-                rowhtml += '<tr>';
-                columns.map((d: any) => {
-                    let val = item[d] ? item[d] : '';
-                    rowhtml += '<td>' + val + '</td>';
-                });
-                rowhtml += '</tr>';
-            });
-            rowhtml +=
-                '<style>body {font-family:Arial; color:#495057;}p{text-align:center;font-size:18px;font-weight:bold;margin:15px;}table{ border-collapse: collapse; border-spacing: 0; }th,td{font-size:12px;text-align:left;padding: 4px;}th{padding:8px 4px;}tr:nth-child(2n-1){background:#f7f7f7; }</style>';
-            rowhtml += '</tbody></table>';
-            var winPrint: any = window.open('', '', 'left=0,top=0,width=1000,height=600,toolbar=0,scrollbars=0,status=0');
-            winPrint.document.write('<title>Print</title>' + rowhtml);
-            winPrint.document.close();
-            winPrint.focus();
-            winPrint.print();
-        } else if (type === 'txt') {
-            let coldelimiter = ',';
-            let linedelimiter = '\n';
-            let result = columns
-                .map((d: any) => {
-                    return capitalize(d);
-                })
-                .join(coldelimiter);
-            result += linedelimiter;
-            records.map((item: any) => {
-                columns.map((d: any, index: any) => {
-                    if (index > 0) {
-                        result += coldelimiter;
-                    }
-                    let val = item[d] ? item[d] : '';
-                    result += val;
-                });
-                result += linedelimiter;
-            });
+            ws['!cols'] = colWidths;
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+            const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+            const blob = new Blob([wbout], { type: 'application/octet-stream' });
+            saveAs(blob, `${filename}.xlsx`);
+        }
 
-            if (result == null) return;
-            if (!result.match(/^data:text\/txt/i) && !newVariable.msSaveOrOpenBlob) {
-                var data1 = 'data:application/txt;charset=utf-8,' + encodeURIComponent(result);
-                var link1 = document.createElement('a');
-                link1.setAttribute('href', data1);
-                link1.setAttribute('download', filename + '.txt');
-                link1.click();
-            } else {
-                var blob1 = new Blob([result]);
-                if (newVariable.msSaveOrOpenBlob) {
-                    newVariable.msSaveBlob(blob1, filename + '.txt');
-                }
-            }
+        // ===============================
+        // ---- TXT Export ----
+        // ===============================
+        else if (type === 'txt') {
+            const result = data.map((row) => row.join('\t')).join('\n');
+            const blob = new Blob([result], { type: 'text/plain;charset=utf-8;' });
+            saveAs(blob, `${filename}.txt`);
+        }
+
+        // ===============================
+        // ---- PRINT ----
+        // ===============================
+        else if (type === 'print') {
+            let html = `
+      <html>
+      <head>
+        <title>${filename}</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 16px; color: #333; }
+          h2 { text-align: center; margin-bottom: 16px; }
+          table { border-collapse: collapse; width: 100%; font-size: 12px; }
+          th, td { border: 1px solid #ccc; padding: 6px; text-align: left; vertical-align: top; }
+          th { background: #eff5ff; color: #333; }
+          tr:nth-child(even) { background: #fafafa; }
+        </style>
+      </head>
+      <body>
+        <h2>${filename.replace(/_/g, ' ')}</h2>
+        <table>
+          <thead>
+            <tr>${columns.map((c) => `<th>${capitalize(c)}</th>`).join('')}</tr>
+          </thead>
+          <tbody>
+            ${records
+                    .map(
+                        (item) =>
+                            `<tr>${columns
+                                .map((col) => `<td>${getValue(item, col) || ''}</td>`)
+                                .join('')}</tr>`
+                    )
+                    .join('')}
+          </tbody>
+        </table>
+      </body>
+      </html>
+    `;
+
+            const winPrint = window.open('', '', 'width=1000,height=600');
+            winPrint!.document.write(html);
+            winPrint!.document.close();
+            winPrint!.focus();
+            winPrint!.print();
         }
     };
+
+
+
 
     const capitalize = (text: any) => {
         return text
@@ -243,20 +313,8 @@ const PrajnaContest = () => {
             .join(' ');
     };
 
-    // const randomColor = () => {
-    //     const color = ['primary', 'secondary', 'success', 'danger', 'warning', 'info'];
-    //     // const random = Math.floor(Math.random() * color.length);
-    //     return color;
-    // };
-
-    // const randomStatus = () => {
-    //     const status = ['PAID', 'APPROVED', 'FAILED', 'CANCEL', 'SUCCESS', 'PENDING', 'COMPLETE'];
-    //     // const random = Math.floor(Math.random() * status.length);
-    //     return status;
-    // };
 
 
-    // if (loading) return <div>Loading...</div>;
 
 
     return (
@@ -312,15 +370,14 @@ const PrajnaContest = () => {
                         <input type="text" className="form-input" placeholder="Search..." value={search} onChange={(e) => setSearch(e.target.value)} />
                     </div>
                     <div className="flex flex-wrap items-center">
+                        <button type="button" onClick={() => exportTable('xlsx')} className="btn btn-primary btn-sm m-1">
+                            <IconFile className="h-5 w-5 ltr:mr-2 rtl:ml-2" />
+                            EXCEL
+                        </button>
                         <button type="button" onClick={() => exportTable('csv')} className="btn btn-primary btn-sm m-1 ">
                             <IconFile className="h-5 w-5 ltr:mr-2 rtl:ml-2" />
                             CSV
                         </button>
-                        <button type="button" onClick={() => exportTable('txt')} className="btn btn-primary btn-sm m-1">
-                            <IconFile className="h-5 w-5 ltr:mr-2 rtl:ml-2" />
-                            TXT
-                        </button>
-
                         <button type="button" onClick={() => exportTable('print')} className="btn btn-primary btn-sm m-1">
                             <IconPrinter className="ltr:mr-2 rtl:ml-2" />
                             PRINT
@@ -341,6 +398,29 @@ const PrajnaContest = () => {
                                 title: 'ID',
                                 sortable: true,
                                 hidden: hideCols.includes('id'),
+                            },
+                            {
+                                accessor: 'createdAt',
+                                title: 'Created At',
+                                sortable: true,
+                                hidden: hideCols.includes('createdAt'),
+                                render: (row: any) => {
+                                    const ts = row.createdAt;
+                                    if (!ts?._seconds) return '-';
+                                    const date = new Date(ts._seconds * 1000);
+                                    const options: Intl.DateTimeFormatOptions = {
+                                        day: '2-digit',
+                                        month: '2-digit',
+                                        year: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                        hour12: false,
+                                        timeZone: 'Asia/Kolkata',
+                                    };
+                                    const formatted = date.toLocaleString('en-GB', options);
+                                    return formatted.replace(',', ', at');
+                                }
+
                             },
                             {
                                 accessor: 'name',
@@ -444,14 +524,22 @@ const PrajnaContest = () => {
                                         failed: 'bg-danger',
                                     };
 
-                                    const bgColor = registrationPaymentMode == "offline" ? statusColors["success"]:statusColors[payment?.status] || 'bg-secondary';
+                                    const bgColor = registrationPaymentMode == "offline" ? statusColors["success"] : statusColors[payment?.status] || 'bg-secondary';
 
                                     return (
                                         <span className={`badge ${bgColor}`}>
-                                            {(registrationPaymentMode == "offline" ? "SUCCESS": payment?.status ?? "")?.toUpperCase()}
+                                            {(registrationPaymentMode == "offline" ? "SUCCESS" : payment?.status ?? "")?.toUpperCase()}
                                         </span>
                                     );
                                 },
+                            },
+                            {
+                                accessor: 'paymentId',
+                                title: 'Payment Id',
+                                sortable: true,
+                                hidden: hideCols.includes('paymentAmount'),
+                                render: ({ payment }) => <div>{(payment?.paymentId ?? "")}</div>,
+
                             },
                             {
                                 accessor: 'paymentAmount',

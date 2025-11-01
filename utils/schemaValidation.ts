@@ -26,6 +26,7 @@ export type Payment = {
 
 export type FormValues = {
   id: string;
+  createdAt: string;
   // firstName: string; --- IGNORE ---
   name: string;
   gender: string;
@@ -36,6 +37,9 @@ export type FormValues = {
   institute: string;
   regBace: string;
   registrationPaymentMode: string;
+  paymentStatus: string;
+  paymentId?: string;
+  paymentAmount?: string;
   volunteer: Volunteer;
   isCourier?: boolean;
   courier: Courier;

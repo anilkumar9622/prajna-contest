@@ -12,12 +12,15 @@ import { FormValues } from '@/utils/schemaValidation';
 import SkeletonTable from '../skeleton/skeletonTable';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import Select from 'react-select';
+import IconEdit from '../icon/icon-edit';
+import { showToast } from '@/utils/toast';
 
 const PrajnaContest = () => {
     const isRtl = useSelector((state: IRootState) => state.themeConfig.rtlClass) === 'rtl';
     const [rowData, setUsers] = useState<FormValues[]>([]);
     const [loading, setLoading] = useState(true);
-    console.log(rowData);
+    // console.log(rowData);
 
     // show/hide
     const [page, setPage] = useState(1);
@@ -34,7 +37,7 @@ const PrajnaContest = () => {
         }
     }, [rowData]);
 
-    console.log(initialRecords, recordsData, ">>>>");
+    // console.log(initialRecords, recordsData, ">>>>");
 
     const [search, setSearch] = useState('');
     const [sortStatus, setSortStatus] = useState<DataTableSortStatus>({
@@ -313,8 +316,49 @@ const PrajnaContest = () => {
             .join(' ');
     };
 
+   const updatePaymentStatus = async (id: string, status: string) => {
+  try {
+    const res = await fetch(`/api/user/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ paymentStatus: status }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      showToast("error", "Update failed");
+      throw new Error(data.error || "Update failed");
+    }
+
+    showToast("success", "Status Updated");
+    setEditVal("");
+
+    // ✅ Update the local state instead of full refetch
+    setUsers((prevUsers: any[]) =>
+      prevUsers.map((user) =>
+        user.id === id
+          ? {
+              ...user,
+              payment: {
+                ...user.payment,
+                status: status,
+                updatedAt: new Date().toISOString(),
+              },
+            }
+          : user
+      )
+    );
+  } catch (err) {
+    console.error("Error updating payment:", err);
+    showToast("error", "Something went wrong");
+  }
+};
 
 
+    const [editVal, setEditVal] = useState<any>(false)
+    const editHandler = (id: any) => {
+        setEditVal(id)
+    }
 
 
     return (
@@ -427,6 +471,7 @@ const PrajnaContest = () => {
                                 title: 'Full Name',
                                 sortable: true,
                                 hidden: hideCols.includes('name'),
+
                             },
                             {
                                 accessor: 'gender',
@@ -515,22 +560,57 @@ const PrajnaContest = () => {
                                 accessor: 'paymentStatus',
                                 title: 'Payment Status',
                                 sortable: true,
-                                render: ({ payment, registrationPaymentMode }) => {
-                                    console.log({ payment })
+                                render: ({ id, payment, registrationPaymentMode }) => {
+                                    // console.log({ payment })
                                     // Map status to color
                                     const statusColors: Record<string, string> = {
                                         success: 'bg-success',
                                         pending: 'bg-warning',
                                         failed: 'bg-danger',
+                                        to_be_paid: 'bg-secondary',
+                                        paid: 'bg-success',
                                     };
 
-                                    const bgColor = registrationPaymentMode == "offline" ? statusColors["success"] : statusColors[payment?.status] || 'bg-secondary';
+                                    const bgColor = statusColors[payment?.status] || 'bg-secondary';
+                                    const options = [
+                                        { value: 'success', label: 'Success' },
+                                        { value: 'pending', label: 'Pending' },
+                                        { value: 'to_be_paid', label: 'To be Paid' },
+                                        { value: 'paid', label: 'Paid' },
+                                    ];
+
+                                    const selectedOption = options.find(
+                                        (opt) => opt.value === payment?.status?.toLowerCase()
+                                    );
+
 
                                     return (
-                                        <span className={`badge ${bgColor}`}>
-                                            {(registrationPaymentMode == "offline" ? "SUCCESS" : payment?.status ?? "")?.toUpperCase()}
-                                        </span>
+                                        registrationPaymentMode === "offline" ? (
+                                            <>
+                                                {editVal == id ? <Select
+                                                    defaultValue={selectedOption}
+                                                    options={options}
+                                                    isSearchable={false}
+                                                    onChange={(option: any) => updatePaymentStatus(id, option.value)}
+                                                /> :
+                                                    <div className='flex items-center gap-2'>
+                                                        <span className={`badge ${bgColor}`}>
+                                                            {(payment?.status ?? "").toUpperCase()}
+                                                        </span>
+                                                        <button onClick={() => editHandler(id)} className='cursor-pointer' >
+                                                            <IconEdit />
+                                                        </button>
+                                                    </div>}
+                                            </>
+                                        ) : (
+                                            <span className={`badge ${bgColor}`}>
+                                                {(payment?.status ?? "").toUpperCase()}
+                                            </span>
+
+                                        )
                                     );
+
+
                                 },
                             },
                             {
@@ -622,6 +702,23 @@ const PrajnaContest = () => {
                         paginationText={({ from, to, totalRecords }) => `Showing  ${from} to ${to} of ${totalRecords} entries`}
                     />)}
             </div>
+             <style jsx global>
+                {`
+                    /* target title inside toast */
+                    .small-toast {
+                        padding: 10px 20px !important;
+                    }
+                    .small-toast .swal2-title {
+                        font-size: 16px; /* smaller text */
+                        line-height: 1.2; /* optional, adjust spacing */
+                    }
+
+                    .small-toast .swal2-icon {
+                        width: 12px; /* optional: smaller icon */
+                        height: 12px;
+                    }
+                `}
+            </style>
         </div>
     );
 };

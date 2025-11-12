@@ -159,7 +159,7 @@ const ComponentsAuthRegisterForm = ({ setLoader }: any) => {
                 body: JSON.stringify(formData),
             });
             const data = await res.json();
-            if (res.status === 201) {
+            if (res.status === 201 || res.status === 200) {
                 if (data?.data && registrationType === 'online') {
                     await startRazorpayPayment({
                         amount: total,
@@ -170,11 +170,11 @@ const ComponentsAuthRegisterForm = ({ setLoader }: any) => {
                             contact: data?.data?.phone,
                         },
                         onLoader: (res) => {
-                            console.log({ res }, 'loader');
+                            // console.log({ res }, 'loader');
                             setLoader(res);
                         },
                         onSuccess: (paymentData) => {
-                            console.log('✅ Payment success:', paymentData);
+                            // console.log('✅ Payment success:', paymentData);
                             router.push('/success');
                         },
                         onFailure: (err) => {
@@ -198,12 +198,16 @@ const ComponentsAuthRegisterForm = ({ setLoader }: any) => {
                     await showMessage('Registration successfully!', 'success');
                     router.push('/success');
                 }
+                // console.log({res})
+
             } else if (res.status === 400) {
-                showMessage(data?.errors?.join(', ') || 'Validation error', 'error');
+                showMessage(data?.message || data?.errors?.join(', ') || 'Validation error', 'error');
             } else {
-                showMessage(data?.error || 'Something went wrong!', 'error');
+                showMessage(data?.message || data?.error || 'Something went wrong!', 'error');
             }
         } catch (err: any) {
+                // console.log({err})
+
             console.error('❌ Register API failed', err);
             showMessage(err.message || 'Network error, please try again.', 'error');
         } finally {
@@ -241,7 +245,7 @@ const ComponentsAuthRegisterForm = ({ setLoader }: any) => {
                     <HookFormInputField name="dob" control={control} placeholder="Enter Date of Birth" label="Date of Birth" required type="date" error={errors.dob?.message} icon={<IconCalendar />} />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <HookFormInputField name="email" control={control} placeholder="Enter Email" label="Email" required type="email" error={errors.email?.message} icon={<IconMail fill={true} />} />
+                    <HookFormInputField name="email"  control={control} placeholder="Enter Email" label="Email" required type="email" error={errors.email?.message} icon={<IconMail fill={true} />} />
                     <HookFormInputField
                         name="phone"
                         control={control}

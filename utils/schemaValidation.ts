@@ -65,7 +65,7 @@ export const formSchema = yup.object().shape({
       "Date of birth cannot be in the future",
       (value) => (value ? new Date(value) <= new Date() : false)
     ),
-  email: yup.string().email("Invalid email").required("Email is required"),
+  // email: yup.string().email("Invalid email").required("Email is required"),
   phone: yup
     .string()
     .matches(/^[0-9]{10}$/, "Phone must be 10 digits")
@@ -74,7 +74,11 @@ export const formSchema = yup.object().shape({
   institute: yup.string().required("Institute Name is required"),
   regBace: yup.string().required("Registration BACE is required"),
   registrationPaymentMode: yup.string().required("Registration Payment Mode is required"),
-
+  email: yup.string().email("Invalid email").when("registrationPaymentMode", {
+    is: "online",
+    then: (schema) => schema.required("Email is required"),
+    otherwise: (schema) => schema.notRequired(),
+  }),
   // Representative required only for offline
   volunteer: yup.object({
     name: yup.string(),
@@ -95,7 +99,7 @@ export const formSchema = yup.object().shape({
   isCourier: yup.boolean().optional(),
 
   // Courier fields optional unless isCourier is true
- courier: yup
+  courier: yup
     .object({
       houseNo: yup.string(),
       line1: yup.string().optional(),
@@ -133,7 +137,7 @@ export const formSchema = yup.object().shape({
     .required("Agreement is required"),
 
   captcha: yup.string().required("Captcha verification is required"),
-   payment: yup.object({
+  payment: yup.object({
     status: yup
       .string()
       .oneOf(["pending", "success", "failed"])
@@ -152,11 +156,11 @@ export type FormValuess = yup.InferType<typeof formSchema>;// 👈 single source
 
 
 export interface LoginForm {
-    email: string;
-    password: string;
+  email: string;
+  password: string;
 }
 
 export const loginSchema = yup.object({
-    email: yup.string().email().required("Email is required"),
-    password: yup.string().required("Password is required"),
+  email: yup.string().email().required("Email is required"),
+  password: yup.string().required("Password is required"),
 });

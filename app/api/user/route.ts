@@ -5,7 +5,10 @@ export const dynamic = "force-dynamic"; // disable caching in prod
 
 export async function GET(req: Request) {
   try {
-    const usersSnapshot = await db.collection("user").get();
+    const usersSnapshot = await db
+      .collection("user")
+      .orderBy("createdAt", "desc")
+      .get();
 
     const users: any[] = [];
     usersSnapshot.forEach((doc) => {
@@ -27,3 +30,4 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
+

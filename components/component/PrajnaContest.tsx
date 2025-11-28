@@ -141,7 +141,7 @@ const PrajnaContest = () => {
                     ]
                         .filter(Boolean) // remove null/undefined
                         .some((val) =>
-                            String(val)?.toLowerCase()?.includes(search?.toLowerCase())
+                            String(val)?.toLowerCase()?.includes(search?.toLowerCase()?.trim())
                         )
                 );
 

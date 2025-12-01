@@ -147,7 +147,6 @@ export const formSchema = yup.object().shape({
     totalRegistrationAmount: yup.string().optional(),
 });
 
-
 export const LevelFormSchema = yup.object().shape({
     fullSpiritualName: yup.string().required('Full spiritual name is required'),
     firstName: yup.string().required('First name is required'),
@@ -173,6 +172,8 @@ export const LevelFormSchema = yup.object().shape({
         .required('WhatsApp number is required'),
 
     stayLocation: yup.string().required('Please select where you stay'),
+
+    shippingAddress: yup.string().optional(),
 
     postOffice: yup.string().required('Post office is required'),
 
@@ -266,7 +267,6 @@ export const LevelFormSchema = yup.object().shape({
 
     totalRegistrationAmount: yup.string().optional(),
 });
-
 
 export type FormValuess = yup.InferType<typeof formSchema>; // 👈 single source of truth
 

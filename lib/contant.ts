@@ -1,5 +1,10 @@
- 
 // Mapping of shortcodes to full BACE names
+
+interface ILevelBaceOptions {
+    value: string;
+    label: string;
+}
+
 export const baceShortcodeMapping: { [key: string]: string } = {
     "ayd": "Ayodhya Dham",
     "bdd": "Badrinath Dham",
@@ -25,30 +30,65 @@ export const baceShortcodeMapping: { [key: string]: string } = {
 };
 
 export const baceOptions = [
-        "Not Sure",
-        "Ayodhya Dham",
-        "Badrinath Dham",
-        "Braj Dham",
-        "Ekachakra Dham",
-        "Gambhira",
-        "Gaur Dham",
-        "Goverdhan Dham",
-        "Govind Dham",
-        "Gurugram",
-        "Indraprastha Dham",
-        "Jagannath Puri Dham",
-        "Mamgachchi",
-        "Mathura Dham",
-        "Mayapur Dham",
-        "Nadiya Dham",
-        "Shantipur Dham",
-        "Srivas Angan",
-        "Temple",
-        "Tughlakabad Center",
-        "Others",
-        "Common"
-    ];
-   export const collegeOptions = [
+    'Not Sure',
+    'Ayodhya Dham',
+    'Badrinath Dham',
+    'Braj Dham',
+    'Ekachakra Dham',
+    'Gambhira',
+    'Gaur Dham',
+    'Goverdhan Dham',
+    'Govind Dham',
+    'Gurugram',
+    'Indraprastha Dham',
+    'Jagannath Puri Dham',
+    'Mamgachchi',
+    'Mathura Dham',
+    'Mayapur Dham',
+    'Nadiya Dham',
+    'Shantipur Dham',
+    'Srivas Angan',
+    'Temple',
+    'Tughlakabad Center',
+    'Others',
+    'Common',
+];
+
+export const LevelBaceOptions: ILevelBaceOptions[] = [
+    { value: 'Not Sure', label: 'Not Sure' },
+    { value: 'Ayodhya Dham | अयोध्या धाम', label: 'Ayodhya Dham | अयोध्या धाम' },
+    { value: 'Badrinath Dham | बद्रीनाथ धाम', label: 'Badrinath Dham | बद्रीनाथ धाम' },
+    { value: 'Braj Dham | ब्रज धाम', label: 'Braj Dham | ब्रज धाम' },
+    { value: 'Ekachakra Dham | एकचक्रा धाम', label: 'Ekachakra Dham | एकचक्रा धाम' },
+    { value: 'Gaur Dham | गौर धाम', label: 'Gaur Dham | गौर धाम' },
+    { value: 'Goverdhan Dham | गोवर्धन धाम', label: 'Goverdhan Dham | गोवर्धन धाम' },
+    { value: 'Govind Dham | गोविंद धाम', label: 'Govind Dham | गोविंद धाम' },
+    { value: 'Indraprastha Dham | इन्द्रप्रस्थ धाम', label: 'Indraprastha Dham | इन्द्रप्रस्थ धाम' },
+    { value: 'Jagannath Puri Dham | जगन्नाथ पुरी धाम', label: 'Jagannath Puri Dham | जगन्नाथ पुरी धाम' },
+    { value: 'Mamgachchi Dham | मामगाछी धाम', label: 'Mamgachchi Dham | मामगाछी धाम' },
+    { value: 'Mathura Dham | मथुरा धाम', label: 'Mathura Dham | मथुरा धाम' },
+    { value: 'Mayapur Dham | मायापुर धाम', label: 'Mayapur Dham | मायापुर धाम' },
+    { value: 'Nadiya Dham | नदिया धाम', label: 'Nadiya Dham | नदिया धाम' },
+    { value: 'Shantipur Dham | शांतिपुर धाम', label: 'Shantipur Dham | शांतिपुर धाम' },
+    { value: 'Srivas Angan | श्रीवास आंगन', label: 'Srivas Angan | श्रीवास आंगन' },
+    { value: 'Tughlakabad Center | तुगलकाबाद सेंटर', label: 'Tughlakabad Center | तुगलकाबाद सेंटर' },
+    { value: 'Gurugram BACE | गुरुग्राम BACE', label: 'Gurugram BACE | गुरुग्राम BACE' },
+    { value: 'Temple | मंदिर', label: 'Temple | मंदिर' },
+    { value: 'Others | अन्य', label: 'Others | अन्य' },
+];
+
+export const LevelOptions: ILevelBaceOptions[] = [
+    { value: 'Level-2 (Essence of Bhagavad Gita) I लेवल-2 (भगवद्गीता का सार)', label: 'Level-2 (Essence of Bhagavad Gita) I लेवल-2 (भगवद्गीता का सार)' },
+    { value: 'Level-3 (Gaudiya Vaishnava Siddhanta)। लेवल-3 (गौड़ीय वैष्णव सिद्धांत)', label: 'Level-3 (Gaudiya Vaishnava Siddhanta)। लेवल-3 (गौड़ीय वैष्णव सिद्धांत)' },
+    { value: 'Level-4 (Pure Devotional Service) । लेवल-4 (शुद्ध भक्ति सेवा)', label: 'Level-4 (Pure Devotional Service) । लेवल-4 (शुद्ध भक्ति सेवा)' },
+    { value: 'Level-5 (Essence of Srimad Bhagvatam-1)। लेवल-5 (श्रीमद्भागवतम का सार - 1)', label: 'Level-5 (Essence of Srimad Bhagvatam-1)। लेवल-5 (श्रीमद्भागवतम का सार - 1)' },
+    { value: 'Level-6 (Essence of Srimad Bhagvatam II)। लेवल-6 (श्रीमद्भागवतम का सार - II)', label: 'Level-6 (Essence of Srimad Bhagvatam II)। लेवल-6 (श्रीमद्भागवतम का सार - II)' },
+    { value: 'Level-7 (Essence of Srimad Bhagvatam III) । लेवल-7 (श्रीमद्भागवतम का सार - III)', label: 'Level-7 (Essence of Srimad Bhagvatam III) । लेवल-7 (श्रीमद्भागवतम का सार - III)' },
+    { value: 'Level-8 (Caitanya Caritamrta - 1) । लेवल-8 (चैतन्य चरितामृत - 1)', label: 'Level-8 (Caitanya Caritamrta - 1) । लेवल-8 (चैतन्य चरितामृत - 1)' },
+    { value: 'Level-9 (Caitanya Caritamrta - II) । लेवल-9 (चैतन्य चरितामृत - 11)', label: 'Level-9 (Caitanya Caritamrta - II) । लेवल-9 (चैतन्य चरितामृत - 11)' },
+    { value: 'Level-10 (Caitanya Caritamrta - III) । लेवल-10 (चैतन्य चरितामृत - III)', label: 'Level-10 (Caitanya Caritamrta - III) । लेवल-10 (चैतन्य चरितामृत - III)' },
+];
+ export const collegeOptions = [
         "AIIMS",
         "Akhilesh Das Gupta College",
         "Amity University Noida",

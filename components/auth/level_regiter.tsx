@@ -8,13 +8,13 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import React from 'react';
 import IconPhoneCall from '../icon/icon-phone-call';
-import { collegeOptions, LevelBaceOptions, LevelOptions, schoolOptions } from '@/lib/contant';
+import { LevelBaceOptions, LevelOptions } from '@/lib/contant';
 import HookFormInputField from '../hooks/hookFormInput';
 import HookFormSelectField from '../hooks/hookFormSelect';
 import { useForm } from 'react-hook-form';
 import Captcha from './captcha';
 import IconCalendar from '../icon/icon-calendar';
-import { formSchema, LevelFormSchema } from '@/utils/schemaValidation';
+import { LevelFormSchema } from '@/utils/schemaValidation';
 import Swal from 'sweetalert2';
 import { startRazorpayPayment } from './RazorPayment';
 import { sendEmail } from '@/utils/email';
@@ -43,16 +43,8 @@ const ComponentsAuthLevelRegisterForm = ({ setLoader }: any) => {
             mobile: '',
             whatsapp: '',
             stayLocation: '',
-            shippingAddress: '',
-            postOffice: '',
-            district: '',
-            state: '',
-            pincode: '',
-
             counselorName: '',
             languagePreference: '',
-            instituteType: '',
-            institute: '',
             regBace: '',
             registrationPaymentMode: '',
 
@@ -80,8 +72,8 @@ const ComponentsAuthLevelRegisterForm = ({ setLoader }: any) => {
             },
             totalRegistrationAmount: '',
             remarks: '',
-            agree: false,
-            captcha: '',
+            // agree: false,
+            // captcha: '',
         },
     });
 
@@ -93,7 +85,6 @@ const ComponentsAuthLevelRegisterForm = ({ setLoader }: any) => {
     const [registrationCharge, setRegistrationCharge] = useState<number>(200);
     const [isLoading, setIsLoading] = useState(false);
     const [selectedType, setSelectedType] = useState<'school' | 'college' | ''>('');
-    const selectedInstituteType = watch('instituteType', selectedType);
     const [services, setServices] = useState<any>({
         language: false,
         courier: false,
@@ -122,27 +113,9 @@ const ComponentsAuthLevelRegisterForm = ({ setLoader }: any) => {
         }
     }, [fullBaceName, setValue]);
 
-    const handleChange = (value: any) => {
-        if (value === 'Other') {
-            setIsOther(true);
-            reset({ ...watch(), institute: '' });
-        } else {
-            setIsOther(false);
-            reset({ ...watch(), institute: value });
-        }
-    };
-
-    const instituteTypeHandler = (value: any) => {
-        setSelectedType(value);
-        setIsOther(false);
-        reset({ ...watch(), institute: '' });
-    };
-
     const handleServiceChange = (key: any) => {
         setServices({ ...services, [key]: !services[key] });
     };
-
-    const dynamicOptions = selectedInstituteType === 'school' ? schoolOptions : selectedInstituteType === 'college' ? collegeOptions : [];
 
     const languageCharge = services.language ? 100 : 0;
     useEffect(() => {
@@ -169,7 +142,8 @@ const ComponentsAuthLevelRegisterForm = ({ setLoader }: any) => {
     const onSubmit = async (formData: any) => {
         setIsLoading(true);
         try {
-            const res = await fetch('/api/auth/register', {
+            console.log('Form Data', formData);
+            const res = await fetch('/api/auth/registerrr', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData),
@@ -286,7 +260,16 @@ const ComponentsAuthLevelRegisterForm = ({ setLoader }: any) => {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <HookFormInputField name="dob" control={control} placeholder="Enter Date of Birth" label="Date of Birth ( जन्मतिथि )" required type="date" error={errors.dob?.message} icon={<IconCalendar />} />
+                    <HookFormInputField
+                        name="dob"
+                        control={control}
+                        placeholder="Enter Date of Birth"
+                        label="Date of Birth ( जन्मतिथि )"
+                        required
+                        type="date"
+                        error={errors.dob?.message}
+                        icon={<IconCalendar />}
+                    />
                     <div className="relative text-white-dark">
                         <HookFormSelectField
                             name="stayLocation"
@@ -310,7 +293,7 @@ const ComponentsAuthLevelRegisterForm = ({ setLoader }: any) => {
                         placeholder="Enter Mobile No."
                         label="Mobile No. मोबाइल नंबर (कॉल करने के लिए)"
                         required
-                        type="email"
+                        type="number"
                         error={errors.mobile?.message}
                         icon={<IconPhoneCall fill={true} />}
                     />
@@ -357,7 +340,7 @@ const ComponentsAuthLevelRegisterForm = ({ setLoader }: any) => {
 
                 <div className="relative text-white-dark">
                     <HookFormSelectField
-                        name="language"
+                        name="languagePreference"
                         control={control}
                         placeholder="Choose Language"
                         label="In which language do you want the study material, syllabus, and RA? ( आप अध्ययन सामग्री, पाठ्यक्रम और रीडिंग असाइनमेंट किस भाषा में चाहते हैं? )"
@@ -371,7 +354,7 @@ const ComponentsAuthLevelRegisterForm = ({ setLoader }: any) => {
                     />
                 </div>
 
-                <div className="relative text-white-dark">
+                {/* <div className="relative text-white-dark">
                     <HookFormInputField
                         name="shippingAddress"
                         control={control}
@@ -415,7 +398,7 @@ const ComponentsAuthLevelRegisterForm = ({ setLoader }: any) => {
                         error={errors.pincode?.message}
                         icon={<IconMapPin />}
                     />
-                </div>
+                </div> */}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {fullBaceName ? (
@@ -465,7 +448,7 @@ const ComponentsAuthLevelRegisterForm = ({ setLoader }: any) => {
                     <div className="mt-1 mb-5 space-y-3 border rounded-lg p-2 bg-blue-50 border-blue-600">
                         <label className="flex items-center justify-between gap-2 cursor-pointer mb-0 p-1">
                             <span className="text-sm text-gray-700 dark:text-gray-200">
-                                I want to get my Prajñā kit via courier( Courier charge around <span className="font-semibold">Rs 100</span> is extra)
+                                I want to get my Level Class kit via courier( Courier charge around <span className="font-semibold">Rs 100</span> is extra)
                             </span>
                             <HookFormInputField
                                 name="isCourier"
@@ -566,16 +549,16 @@ Please give your feedback, suggestions, or mention any challenges that you faced
                 </div>
                 <div className="mt-4 space-y-3">
                     <label className="flex items-center gap-2 cursor-pointer">
-                        <HookFormInputField name="agree" control={control} required type="checkbox" className="form-checkbox h-5 w-5 text-blue-600 border-gray-400 bg-whit" />
+                        {/* <HookFormInputField name="agree" control={control} required type="checkbox" className="form-checkbox h-5 w-5 text-blue-600 border-gray-400 bg-whit" /> */}
                         <span className="text-sm text-gray-700 dark:text-gray-200">Details must be as per your Institute ID Card otherwise your registration is invalid</span>
                     </label>
-                    {errors.agree?.message && <span className="text-red-500 text-sm mt-1">{errors.agree?.message}</span>}
+                    {/* {errors.agree?.message && <span className="text-red-500 text-sm mt-1">{errors.agree?.message}</span>} */}
                 </div>
-                <Captcha onChange={(token: any) => setValue('captcha', token, { shouldValidate: true })} onExpired={() => setValue('captcha', '', { shouldValidate: true })} />
+                {/* <Captcha onChange={(token: any) => setValue('captcha', token, { shouldValidate: true })} onExpired={() => setValue('captcha', '', { shouldValidate: true })} /> */}
                 <div className="hidden">
                     <HookFormInputField name="captcha" control={control} type="hidden" />
                 </div>
-                {errors.captcha?.message && <span className="text-red-500 text-sm inline lg:block md:block  text-center leading-none">{errors.captcha?.message}</span>}
+                {/* {errors.captcha?.message && <span className="text-red-500 text-sm inline lg:block md:block  text-center leading-none">{errors.captcha?.message}</span>} */}
                 <button
                     type="submit"
                     disabled={isLoading}

@@ -173,26 +173,11 @@ export const LevelFormSchema = yup.object().shape({
 
     stayLocation: yup.string().required('Please select where you stay'),
 
-    shippingAddress: yup.string().optional(),
-
-    postOffice: yup.string().required('Post office is required'),
-
-    district: yup.string().required('District is required'),
-
-    state: yup.string().required('State is required'),
-
-    pincode: yup
-        .string()
-        .matches(/^[0-9]{6}$/, 'Pin Code must be 6 digits')
-        .required('Pin Code is required'),
 
     counselorName: yup.string().required('Counselor / Facilitator name is required'),
 
     languagePreference: yup.string().required('Language preference is required'),
 
-    instituteType: yup.string().required('Institute type is required'),
-
-    institute: yup.string().required('Institute name is required'),
 
     regBace: yup.string().required('Registering BACE is required'),
 
@@ -250,9 +235,9 @@ export const LevelFormSchema = yup.object().shape({
 
     remarks: yup.string().max(500).optional(),
 
-    agree: yup.boolean().oneOf([true], 'You must agree to the terms').required('Agreement is required'),
+    // agree: yup.boolean().oneOf([true], 'You must agree to the terms').required('Agreement is required'),
 
-    captcha: yup.string().required('Captcha verification is required'),
+    // captcha: yup.string().required('Captcha verification is required'),
 
     payment: yup.object({
         status: yup.string().oneOf(['pending', 'success', 'failed']).default('pending').required(),

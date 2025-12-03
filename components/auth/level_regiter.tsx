@@ -286,7 +286,7 @@ const ComponentsAuthLevelRegisterForm = ({ setLoader }: any) => {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <HookFormInputField name="dob" control={control} placeholder="Enter Date of Birth" label="Date of Birth" required type="date" error={errors.dob?.message} icon={<IconCalendar />} />
+                    <HookFormInputField name="dob" control={control} placeholder="Enter Date of Birth" label="Date of Birth ( जन्मतिथि )" required type="date" error={errors.dob?.message} icon={<IconCalendar />} />
                     <div className="relative text-white-dark">
                         <HookFormSelectField
                             name="stayLocation"

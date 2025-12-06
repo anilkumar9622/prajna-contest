@@ -175,7 +175,7 @@ const ComponentsAuthRegisterForm = ({ setLoader }: any) => {
                         },
                         onSuccess: (paymentData) => {
                             // console.log('✅ Payment success:', paymentData);
-                            router.push('/success');
+                            window.location.href = '/quiz';
                         },
                         onFailure: (err) => {
                             console.error('❌ Payment failed:', err);
@@ -196,7 +196,7 @@ const ComponentsAuthRegisterForm = ({ setLoader }: any) => {
                         })}`,
                     });
                     await showMessage('Registration successfully!', 'success');
-                    router.push('/success');
+                    window.location.href = '/quiz';
                 }
                 // console.log({res})
 

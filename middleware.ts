@@ -27,13 +27,13 @@ export async function middleware(req: NextRequest) {
   }
 
   // --- 1️⃣ Public routes: login & register allowed
-  if (pathname.startsWith("/login") || pathname.startsWith("/auth/register")) {
+  if (pathname.startsWith("/login") || pathname.startsWith("/auth/login") || pathname.startsWith("/auth/register")) {
     return NextResponse.next();
   }
 
   // --- 2️⃣ Require authentication
   if (!userRole || !userId) {
-    url.pathname = "/login";
+    url.pathname = "/auth/login";
     return NextResponse.redirect(url);
   }
 
@@ -72,5 +72,6 @@ export const config = {
     "/dashboard/:path*",
     "/student-home",
     "/auth/register/:baceName*",
+    "/quiz",
   ],
 };
